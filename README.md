@@ -4,7 +4,7 @@ SkyGram is a personal cloud storage application that uses Telegram as a drive. I
 
 ✨ The project is actively under development, expect frequent updates and new features.
 
-![banner](https://github.com/lovlygod/SkyGram/public\564523190.png)
+![banner](https://raw.githubusercontent.com/lovlygod/SkyGram/master/public/564523190.png)
 
 Run on your local machine without any external dependencies. You just need to create a Telegram application and get the API ID and API Hash from [my.telegram.org](https://my.telegram.org).
 
