@@ -1,0 +1,152 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+import { Button } from '../ui/button';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../ui/alert-dialog';
+import { useTranslation } from '#/lib/hooks/useTranslation';
+
+interface DeleteConfirmationProps {
+  file: {
+    id: number;
+    filename: string;
+  };
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (fileId: number) => void;
+  onCancel?: () => void;
+}
+
+export function DeleteConfirmation({
+  file,
+  isOpen,
+  onClose,
+  onConfirm,
+  onCancel,
+}: DeleteConfirmationProps) {
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<number>(5); // 5 секунд на отмену
+  const { t } = useTranslation();
+
+  // Сброс таймера при открытии диалога
+  useEffect(() => {
+    if (isOpen) {
+      setTimeLeft(5);
+      setIsAnimating(false);
+    }
+  }, [isOpen]);
+
+  // Запуск таймера при открытии
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    
+    if (isOpen && timeLeft > 0) {
+      timer = setTimeout(() => {
+        setTimeLeft(timeLeft - 1);
+      }, 1000);
+    } else if (isOpen && timeLeft === 0) {
+      // Автоматическое подтверждение удаления по истечении времени
+      handleConfirm();
+    }
+    
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [isOpen, timeLeft]);
+
+  const handleConfirm = () => {
+    setIsAnimating(true);
+    setTimeout(() => {
+      onConfirm(file.id);
+      setIsAnimating(false);
+      onClose();
+      setTimeLeft(5); // Сброс таймера
+    }, 300);
+  };
+
+  const handleCancel = () => {
+    setIsAnimating(true);
+    setTimeout(() => {
+      if (onCancel) {
+        onCancel();
+      } else {
+        // Если onCancel не определен, просто закрываем диалог
+        onClose();
+        setIsAnimating(false);
+        setTimeLeft(5); // Сброс таймера
+      }
+    }, 300);
+  };
+
+  return (
+    <AlertDialog open={isOpen} onOpenChange={onClose}>
+      <AnimatePresence>
+        {isOpen && (
+          <AlertDialogContent
+            className="sm:max-w-md"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 500 }}
+            >
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-lg font-semibold">
+                  {t('Delete file?')}
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-sm text-muted-foreground">
+                  {t('You are about to delete the file')} <strong>"{file.filename}"</strong>.
+                  {t(' The file will be moved to trash and can be restored within 30 days.')}
+                </AlertDialogDescription>
+                
+                <div className="mt-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span>{t('Auto-delete info')}</span>
+                    <span className="font-semibold text-destructive">
+                      {timeLeft} {t('seconds')}
+                    </span>
+                  </div>
+                  
+                  <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
+                    <motion.div
+                      className="h-full bg-destructive"
+                      initial={{ width: '0%' }}
+                      animate={{ width: `${(timeLeft / 5) * 100}%` }}
+                      transition={{ duration: 1, ease: 'linear' }}
+                    />
+                  </div>
+                </div>
+              </AlertDialogHeader>
+              
+              <AlertDialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={handleCancel}
+                  className="mr-2"
+                >
+                  {t('Cancel')}
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleConfirm}
+                  disabled={isAnimating}
+                >
+                  {t('Delete')}
+                </Button>
+              </AlertDialogFooter>
+            </motion.div>
+          </AlertDialogContent>
+        )}
+      </AnimatePresence>
+    </AlertDialog>
+  );
+}
