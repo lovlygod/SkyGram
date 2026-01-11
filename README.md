@@ -155,6 +155,10 @@ Access your bookmarked files quickly through the dedicated bookmarks section in 
 - **Animations**: Framer Motion
 - **File Storage**: Telegram API
 
+## Architecture
+
+![Architecture Diagram](./public/SkyGram%20Architecture.png)
+
 ## Environment Variables
 
 - `TELEGRAM_API_ID`: Your Telegram API ID from my.telegram.org
