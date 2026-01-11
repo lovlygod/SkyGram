@@ -4,7 +4,7 @@ SkyGram - это персональное облачное хранилище, �
 
 ✨ Проект активно развивается, ожидайте частых обновлений и новых функций.
 
-![banner](https://raw.githubusercontent.com/lovlygod/SkyGram/master/public/564523190.png)
+![banner](https://raw.githubusercontent.com/lovlygod/SkyGram/master/public/564523190-RU.png)
 
 Запуск на локальной машине без внешних зависимостей. Вам нужно создать приложение Telegram и получить API ID и API Hash на [my.telegram.org](https://my.telegram.org).
 
