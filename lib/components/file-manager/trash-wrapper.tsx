@@ -10,7 +10,6 @@ export function TrashWrapper() {
     <TrashFiles
       accountId={params.accountId}
       onRestore={() => {
-        // Обновление страницы при восстановлении файлов
         window.location.reload();
       }}
     />

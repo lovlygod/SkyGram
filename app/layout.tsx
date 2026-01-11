@@ -28,7 +28,6 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
-                // Установка темы
                 const savedTheme = localStorage.getItem('theme');
                 const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
                 const initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
@@ -39,7 +38,6 @@ export default function RootLayout({
                   document.documentElement.classList.remove('dark');
                 }
                 
-                // Установка языка
                 const savedLanguage = localStorage.getItem('language') || 'en';
                 document.documentElement.lang = savedLanguage;
               })();
@@ -50,13 +48,11 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
-                // Наблюдение за изменениями языка в localStorage и обновление атрибута lang
                 const updateLanguage = function() {
                   const currentLang = localStorage.getItem('language') || 'en';
                   document.documentElement.lang = currentLang;
                 };
                 
-                // Отслеживание изменений в localStorage
                 window.addEventListener('storage', function(e) {
                   if (e.key === 'language') {
                     updateLanguage();

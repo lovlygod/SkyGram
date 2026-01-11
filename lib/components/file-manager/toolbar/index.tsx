@@ -41,7 +41,7 @@ function Toolbar() {
     trpc.deleteFolder.useMutation();
   const copyFileMutation = trpc.copyFile.useMutation({
     onSuccess: () => {
-      refetch(); // Обновляем список файлов после успешного копирования
+      refetch();
       toast.success(t('File copied successfully'));
     },
     onError: (error) => {
@@ -51,7 +51,7 @@ function Toolbar() {
   });
   const moveFileMutation = trpc.moveFile.useMutation({
     onSuccess: () => {
-      refetch(); // Обновляем список файлов после успешного перемещения
+      refetch();
       toast.success(t('File moved successfully'));
     },
     onError: (error) => {
@@ -98,7 +98,6 @@ function Toolbar() {
     if (!fileToDelete) return;
 
     try {
-      // Только помечаем файл как удаленный, не удаляем из телеграма
       await deleteFile.mutateAsync(fileId);
       refetch();
       setSelectedFile(null);
@@ -255,7 +254,6 @@ function Toolbar() {
             onClose={() => setShowDeleteConfirm(false)}
             onConfirm={handleFileDelete}
             onCancel={() => {
-              // При отмене просто закрываем модальное окно без дополнительных действий
               setShowDeleteConfirm(false);
             }}
           />

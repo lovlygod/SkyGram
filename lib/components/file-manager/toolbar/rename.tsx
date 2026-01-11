@@ -116,7 +116,6 @@ function RenameModal({
           <DialogFooter>
             <Button
               onClick={handleSubmit}
-              // isLoading={rename.isLoading}
             >
               {t('Submit')}
             </Button>

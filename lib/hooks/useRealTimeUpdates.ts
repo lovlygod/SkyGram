@@ -29,7 +29,6 @@ export const useRealTimeUpdates = () => {
   
   const eventHandlerRef = useRef<(event: Event) => void>();
 
-  // Функция для дифференциального обновления файлов
   const updateFiles = useCallback((type: FileSystemEventType, payload: any) => {
     switch (type) {
       case 'FILE_ADDED':
@@ -42,7 +41,6 @@ export const useRealTimeUpdates = () => {
         setFiles(prev => {
           const existingIndex = prev.findIndex((file: File) => file.id === payload.id);
           
-          // Получаем текущий путь из URL, если window доступен
           let currentPath = '/';
           if (typeof window !== 'undefined') {
             const searchParams = new URLSearchParams(window.location.search);
@@ -50,20 +48,16 @@ export const useRealTimeUpdates = () => {
           }
           
           if (existingIndex >= 0) {
-            // Файл уже существует в списке
             if (payload.folderPath === currentPath) {
-              // Обновляем файл, если он в текущей папке
               const updated = [...prev];
               updated[existingIndex] = payload as File;
               return updated;
             } else {
-              // Удаляем файл, если он был перемещен в другую папку
               return prev.filter((_, index) => index !== existingIndex);
             }
           } else {
             // Файл не существует в списке
             if (payload.folderPath === currentPath) {
-              // Добавляем файл, если он был перемещен в текущую папку
               return [...prev, payload as File];
             }
             return prev;
@@ -71,13 +65,11 @@ export const useRealTimeUpdates = () => {
         });
         break;
       case 'BATCH_FILE_DELETED':
-        // Удаляем несколько файлов по ID
         if (Array.isArray(payload.fileIds)) {
           setFiles(prev => prev.filter((file: File) => !payload.fileIds.includes(file.id)));
         }
         break;
       case 'BATCH_FILE_MOVED':
-        // Обновляем путь для нескольких файлов
         if (Array.isArray(payload.files)) {
           setFiles(prev => {
             const updatedFiles = [...prev];
@@ -86,8 +78,7 @@ export const useRealTimeUpdates = () => {
               if (index !== -1) {
                 updatedFiles[index] = updatedFile;
               } else {
-                // Если файл не найден в текущем списке, возможно он был перемещен в другую папку
-                const currentPath = typeof window !== 'undefined' 
+                const currentPath = typeof window !== 'undefined'
                   ? new URLSearchParams(window.location.search).get('path') || '/' 
                   : '/';
                 
@@ -101,7 +92,6 @@ export const useRealTimeUpdates = () => {
         }
         break;
       case 'BATCH_FILE_BOOKMARKED':
-        // Обновляем статус закладки для нескольких файлов
         if (Array.isArray(payload.files)) {
           setFiles(prev => {
             const updatedFiles = [...prev];
@@ -116,13 +106,11 @@ export const useRealTimeUpdates = () => {
         }
         break;
       default:
-        // Для других событий просто обновляем всё
         refetch();
         break;
     }
   }, [setFiles, refetch]);
 
-  // Функция для дифференциального обновления папок
   const updateFolders = useCallback((type: FileSystemEventType, payload: any) => {
     switch (type) {
       case 'FOLDER_CREATED':
@@ -135,36 +123,30 @@ export const useRealTimeUpdates = () => {
         setFolders(prev => prev.map((folder: Folder) => folder.id === payload.id ? payload as Folder : folder));
         break;
       default:
-        // Для других событий просто обновляем всё
         refetch();
         break;
     }
   }, [setFolders, refetch]);
 
   useEffect(() => {
-    // Создаем обработчик событий
     eventHandlerRef.current = (event: Event) => {
       const customEvent = event as CustomEvent;
       const { type, payload } = customEvent.detail as FileSystemEvent;
 
       console.log('Получено WebSocket событие:', type, payload);
 
-      // В зависимости от типа события вызываем соответствующую функцию обновления
       if (type.startsWith('FILE_') || type.startsWith('BATCH_')) {
         updateFiles(type, payload);
       } else if (type.startsWith('FOLDER_')) {
         updateFolders(type, payload);
       } else {
-        // Для других событий просто обновляем всё
         refetch();
       }
     };
 
-    // Подписываемся на события
     window.addEventListener('filesystem-update', eventHandlerRef.current);
 
     return () => {
-      // Отписываемся от событий
       if (eventHandlerRef.current) {
         window.removeEventListener('filesystem-update', eventHandlerRef.current);
       }

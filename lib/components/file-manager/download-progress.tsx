@@ -27,7 +27,6 @@ export function DownloadProgress({
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
 
-  // Обновляем состояние при изменении пропсов
   if (progress !== internalProgress) {
     setInternalProgress(progress);
   }

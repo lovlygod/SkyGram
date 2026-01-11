@@ -14,7 +14,6 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-// Вспомогательные функции для получения начальных значений синхронно
 function getInitialTheme(): Theme {
   if (typeof window !== 'undefined') {
     const savedTheme = localStorage.getItem('theme') as Theme | null;
@@ -24,7 +23,7 @@ function getInitialTheme(): Theme {
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     return systemPrefersDark ? 'dark' : 'light';
   }
-  return 'light'; // Значение по умолчанию для серверного рендеринга
+  return 'light';
 }
 
 function getInitialLanguage(): Language {
@@ -34,7 +33,7 @@ function getInitialLanguage(): Language {
       return savedLanguage;
     }
   }
-  return 'en'; // Значение по умолчанию
+  return 'en';
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -42,7 +41,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>(() => getInitialLanguage());
 
   useEffect(() => {
-    // Обновляем тему при монтировании компонента
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
@@ -56,7 +54,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setLanguageHandler = (lang: Language) => {
     setLanguage(lang);
     localStorage.setItem('language', lang);
-    // Обновляем атрибут языка в html элементе
     document.documentElement.lang = lang;
   };
 

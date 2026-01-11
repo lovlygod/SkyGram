@@ -29,7 +29,6 @@ export function MoveFileModal({ file, isOpen, onClose, onMove, accountId }: Move
     { enabled: isOpen }
   );
 
-  // Сброс состояния при открытии/закрытии модального окна
   useEffect(() => {
     if (isOpen) {
       setCurrentPath('/');

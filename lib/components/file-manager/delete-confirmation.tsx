@@ -36,7 +36,6 @@ export function DeleteConfirmation({
   const [timeLeft, setTimeLeft] = useState<number>(5); // 5 секунд на отмену
   const { t } = useTranslation();
 
-  // Сброс таймера при открытии диалога
   useEffect(() => {
     if (isOpen) {
       setTimeLeft(5);
@@ -44,7 +43,6 @@ export function DeleteConfirmation({
     }
   }, [isOpen]);
 
-  // Запуск таймера при открытии
   useEffect(() => {
     let timer: NodeJS.Timeout;
     
@@ -53,7 +51,6 @@ export function DeleteConfirmation({
         setTimeLeft(timeLeft - 1);
       }, 1000);
     } else if (isOpen && timeLeft === 0) {
-      // Автоматическое подтверждение удаления по истечении времени
       handleConfirm();
     }
     
@@ -68,7 +65,7 @@ export function DeleteConfirmation({
       onConfirm(file.id);
       setIsAnimating(false);
       onClose();
-      setTimeLeft(5); // Сброс таймера
+      setTimeLeft(5);
     }, 300);
   };
 
@@ -78,10 +75,9 @@ export function DeleteConfirmation({
       if (onCancel) {
         onCancel();
       } else {
-        // Если onCancel не определен, просто закрываем диалог
         onClose();
         setIsAnimating(false);
-        setTimeLeft(5); // Сброс таймера
+        setTimeLeft(5);
       }
     }, 300);
   };

@@ -101,7 +101,6 @@ function FileItem({
           throw new Error('Message not found');
         }
 
-        // Скачивание файла с отслеживанием прогресса
         const buffer = await client.downloadMedia(message);
 
         if (buffer) {
@@ -154,7 +153,6 @@ function FileItem({
   const handleToggleBookmark = async () => {
     try {
       await toggleBookmarkFile.mutateAsync(file.id);
-      // Обновляем список файлов, чтобы отразить изменения
       refetch();
     } catch (error) {
       console.error('Error toggling bookmark:', error);
@@ -187,7 +185,7 @@ function FileItem({
               ev.stopPropagation();
               onSelect?.(ev);
             }}
-            onDoubleClick={() => setIsPreviewOpen(true)} // Открытие предварительного просмотра по двойному клику
+            onDoubleClick={() => setIsPreviewOpen(true)}
           >
             {/* Индикатор выбора */}
             {isSelected && (
@@ -207,7 +205,7 @@ function FileItem({
               className={`${file.isBookmarked ? 'fill-primary text-primary' : 'text-gray-400'} absolute right-2 top-2 cursor-pointer hover:opacity-80 transition-all duration-200`}
               size={15}
               onClick={(e) => {
-                e.stopPropagation(); // Предотвращаем всплытие события
+                e.stopPropagation();
                 handleToggleBookmark();
               }}
             />
@@ -273,8 +271,6 @@ function FileItem({
         onConfirm={async (fileId: number) => {
           try {
             await deleteFile.mutateAsync(fileId);
-            // Файл должен быть удален из локального состояния через WebSocket событие
-            // Но также обновляем через refetch для гарантии синхронизации
             refetch();
             toast.success(t('File moved to trash'));
           } catch (error: any) {
@@ -285,7 +281,6 @@ function FileItem({
           }
         }}
         onCancel={() => {
-          // При отмене просто закрываем модальное окно без дополнительных действий
           setIsDeleteConfirmOpen(false);
         }}
       />

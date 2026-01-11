@@ -45,31 +45,24 @@ function ListItems() {
     clearSelectedFiles,
   } = useFileManager();
 
-  // Используем хук для обновления в реальном времени
   useRealTimeUpdates();
 
   const noItems =
     !folders?.length && !files?.length;
 
-  // Обработчик клика по файлу
   const handleFileSelect = (file: File, e: React.MouseEvent<HTMLDivElement>) => {
-    // Проверяем, была ли нажата клавиша Ctrl/Cmd для множественного выбора
     const isMultiSelect = e.ctrlKey || e.metaKey;
     
     if (isMultiSelect) {
-      // Если файл уже выбран, удаляем его из выбранных
       const isSelected = selectedFiles.some(f => f.id === file.id);
       if (isSelected) {
         removeSelectedFile(file.id);
       } else {
         addSelectedFile(file);
       }
-      // Не меняем основной выбранный файл при мультивыборе
     } else {
-      // Обычный режим выбора - устанавливаем один файл как выбранный
       setSelectedFile(file);
       setSelectedFolder(null);
-      // Очищаем список множественного выбора при обычном выборе
       clearSelectedFiles();
     }
   };

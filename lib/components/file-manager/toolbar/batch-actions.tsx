@@ -72,7 +72,6 @@ export const BatchActionsToolbar = ({ onBatchOperationComplete }: BatchActionsTo
     }
   });
 
-  // Состояние для отслеживания активной операции
  const [activeOperation, setActiveOperation] = useState<'delete' | 'move' | 'bookmark' | 'unbookmark' | null>(null);
 
   const handleDeleteFiles = useCallback(() => {
@@ -86,7 +85,6 @@ export const BatchActionsToolbar = ({ onBatchOperationComplete }: BatchActionsTo
     if (selectedFiles.length === 0) return;
     
     setActiveOperation('move');
-    // Для простоты пока покажем сообщение, в реальности здесь должен быть диалог выбора папки
     toast.info(t('Select destination folder functionality would appear here'));
     setActiveOperation(null);
   }, [selectedFiles, t]);
@@ -112,7 +110,6 @@ export const BatchActionsToolbar = ({ onBatchOperationComplete }: BatchActionsTo
   }, [selectedFiles, bookmarkFilesMutation, t]);
 
   const handleCancelOperation = useCallback(() => {
-    // Отмена операции - в реальной реализации может включать отмену запросов
     if (activeOperation) {
       toast.info(`${t('Operation')} ${activeOperation} ${t('cancelled')}`);
       setActiveOperation(null);

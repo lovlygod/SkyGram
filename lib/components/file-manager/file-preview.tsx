@@ -40,7 +40,6 @@ export function FilePreview({
   
   const client = useTelegramClient();
 
-  // Сброс масштаба и поворота при смене файла
   useEffect(() => {
     setScale(1);
     setRotation(0);
@@ -49,7 +48,6 @@ export function FilePreview({
     setMediaUrl(null); // Сброс URL при смене файла
   }, [file]);
 
-  // Загружаем медиафайл при открытии превью
   useEffect(() => {
     if (!isOpen) return;
 
@@ -64,7 +62,6 @@ export function FilePreview({
           if (message) {
             const buffer = await client.downloadMedia(message, {
               progressCallback: (received, total) => {
-                // Можно добавить отслеживание прогресса загрузки
               }
             });
             if (!cancelled && buffer) {
@@ -120,7 +117,6 @@ export function FilePreview({
     setRotation(0);
   };
 
-  // Определяем тип файла для правильного отображения
   const getFileType = (): 'image' | 'video' | 'document' | 'other' => {
     if (file.filetype.startsWith('image/')) {
       return 'image';

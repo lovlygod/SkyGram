@@ -5,7 +5,6 @@ interface WebSocketWithAccount extends WebSocket {
   accountId?: string;
 }
 
-// Типы для событий файловой системы
 type FileSystemEventType =
   | 'FILE_ADDED'
   | 'FILE_REMOVED'
@@ -45,14 +44,12 @@ class WebSocketManager {
     this.wss.on('connection', (ws: WebSocketWithAccount, req: http.IncomingMessage) => {
       console.log('New WebSocket connection');
 
-      // Извлекаем account ID из query параметров
       const url = new URL(`http://localhost${req.url || ''}`);
       const accountId = url.searchParams.get('accountId');
       
       if (accountId) {
         ws.accountId = accountId;
         
-        // Регистрируем клиента
         if (!this.clients.has(accountId)) {
           this.clients.set(accountId, new Set());
         }
@@ -102,7 +99,6 @@ class WebSocketManager {
       if (client.readyState === WebSocket.OPEN) {
         client.send(message);
       } else {
-        // Удаляем недействительное соединение
         clients.delete(client);
         if (clients.size === 0) {
           this.clients.delete(accountId);
@@ -129,12 +125,10 @@ class WebSocketManager {
     }
   }
   
-  // Метод для проверки подключения
   public isAccountConnected(accountId: string): boolean {
     return this.clients.has(accountId) && this.clients.get(accountId)!.size > 0;
   }
   
-  // Метод для получения количества подключенных клиентов для аккаунта
   public getAccountConnections(accountId: string): number {
     return this.clients.get(accountId)?.size || 0;
   }
@@ -142,7 +136,6 @@ class WebSocketManager {
 
 export const wsManager = WebSocketManager.getInstance();
 
-// Middleware для интеграции с Next.js API routes
 export function handleWebSocket(req: http.IncomingMessage, socket: any, head: Buffer) {
   if (!wsManager['wss']) {
     console.error('WebSocket server not initialized');

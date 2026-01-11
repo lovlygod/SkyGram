@@ -5,16 +5,13 @@ import db from '../db';
 import { files } from '../db/schema';
 import { broadcastEvent } from './event-broadcaster';
 
-// Функция для отправки WebSocket событий
 async function sendWebSocketEvent(accountId: string, event: any) {
   try {
-    // Используем динамический импорт для избежания проблем с SSR
     const { wsManager } = await import('../websocket/server');
     if (wsManager) {
       wsManager.broadcastToAccount(accountId, event);
     }
   } catch (e) {
-    // Если WebSocket недоступен, просто логгируем
     console.debug('WebSocket not available, event not sent:', event);
   }
 }
@@ -83,7 +80,6 @@ export async function createFile(
     .values(input)
     .returning();
 
-  // Отправляем событие через WebSocket
   await sendWebSocketEvent(input.accountId, {
     type: 'FILE_ADDED',
     accountId: input.accountId,
@@ -109,7 +105,6 @@ export async function deleteFile(id: number) {
     .where(eq(files.id, id))
     .returning({ id: files.id });
 
-  // Отправляем событие через WebSocket
   if (file) {
     await sendWebSocketEvent(file.accountId, {
       type: 'FILE_REMOVED',
@@ -142,7 +137,6 @@ export async function toggleBookmarkFile(
     .returning()
     .then((res) => res[0]);
 
-  // Отправляем событие через WebSocket
   await sendWebSocketEvent(file.accountId, {
     type: 'FILE_UPDATED',
     accountId: file.accountId,
@@ -222,10 +216,8 @@ export async function restoreFileFromTrash(fileId: number) {
     .where(eq(files.id, fileId))
     .returning();
 
-  // Получаем обновленный файл для отправки в событии
   const updatedFile = result[0];
 
-  // Отправляем событие через WebSocket
   sendWebSocketEvent(file.accountId, {
     type: 'FILE_UPDATED',
     accountId: file.accountId,
@@ -247,7 +239,6 @@ export async function deleteFilePermanently(fileId: number) {
 
   const result = await db.delete(files).where(eq(files.id, fileId));
 
-  // Отправляем событие через WebSocket
   sendWebSocketEvent(file.accountId, {
     type: 'FILE_REMOVED',
     accountId: file.accountId,
@@ -299,7 +290,6 @@ export async function moveFile(fileId: number, targetPath: string) {
 
   const updatedFile = result[0];
 
-  // Отправляем событие через WebSocket
   await sendWebSocketEvent(file.accountId, {
     type: 'FILE_UPDATED',
     accountId: file.accountId,
@@ -323,22 +313,18 @@ export async function copyFile(input: CopyFileInput) {
     throw new Error(`File with ID ${input.fileId} not found`);
   }
 
-  // Генерируем новое имя файла
   const originalName = originalFile.filename;
   let newName = '';
   const lastDotIndex = originalName.lastIndexOf('.');
 
   if (lastDotIndex > 0) {
-    // Файл имеет расширение
     const namePart = originalName.substring(0, lastDotIndex);
     const extension = originalName.substring(lastDotIndex);
     newName = `${namePart}_copy${extension}`;
   } else {
-    // Файл не имеет расширения
     newName = `${originalName}_copy`;
   }
 
-  // Проверяем, существует ли уже файл с таким именем, и при необходимости добавляем число
   let counter = 1;
   let finalName = newName;
   let existingFile = await db.query.files.findFirst({
@@ -386,7 +372,6 @@ export async function copyFile(input: CopyFileInput) {
     })
     .returning();
 
-  // Отправляем событие через WebSocket
   sendWebSocketEvent(originalFile.accountId, {
     type: 'FILE_ADDED',
     accountId: originalFile.accountId,
@@ -401,7 +386,6 @@ export async function copyFile(input: CopyFileInput) {
 export async function batchDeleteFiles(fileIds: number[]) {
   if (fileIds.length === 0) return [];
 
-  // Получаем информацию о файлах перед удалением, чтобы знать их аккаунты
   const filesInfo = await db.select({ accountId: files.accountId }).from(files).where(inArray(files.id, fileIds));
   if (filesInfo.length === 0) return [];
 
@@ -411,10 +395,8 @@ export async function batchDeleteFiles(fileIds: number[]) {
     .where(inArray(files.id, fileIds))
     .returning({ id: files.id });
 
-  // Определяем уникальный accountId для отправки события (предполагаем, что все файлы принадлежат одному аккаунту)
   const accountId = filesInfo[0].accountId;
 
-  // Отправляем событие через broadcastEvent
   await broadcastEvent(accountId, {
     type: 'BATCH_FILE_DELETED',
     accountId: accountId,
@@ -438,7 +420,6 @@ export async function batchMoveFiles(fileIds: number[], targetPath: string) {
   const firstFile = result[0];
   if (!firstFile) return [];
 
-  // Отправляем событие через broadcastEvent
   await broadcastEvent(firstFile.accountId, {
     type: 'BATCH_FILE_MOVED',
     accountId: firstFile.accountId,
@@ -462,7 +443,6 @@ export async function batchBookmarkFiles(fileIds: number[], bookmark: boolean) {
   const firstFile = result[0];
   if (!firstFile) return [];
 
-  // Отправляем событие через broadcastEvent
   await broadcastEvent(firstFile.accountId, {
     type: 'BATCH_FILE_BOOKMARKED',
     accountId: firstFile.accountId,

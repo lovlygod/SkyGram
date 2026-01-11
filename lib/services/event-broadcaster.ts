@@ -22,16 +22,13 @@ interface FileSystemEvent {
 }
 
 export async function broadcastEvent(accountId: string, event: FileSystemEvent): Promise<void> {
-  // Проверяем, что код выполняется на сервере
   if (typeof window === 'undefined') {
     try {
-      // Используем динамический импорт для избежания проблем с SSR
       const { wsManager } = await import('../websocket/server');
       if (wsManager && typeof wsManager.broadcastToAccount === 'function') {
         wsManager.broadcastToAccount(accountId, event);
       }
     } catch (e) {
-      // Если WebSocket недоступен, просто логгируем
       console.debug('WebSocket not available, event not sent:', event);
     }
   }

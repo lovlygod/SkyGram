@@ -9,7 +9,6 @@ export function ThemeToggle() {
   const [theme, setTheme] = useState<'light' | 'dark' | null>(null);
 
   useEffect(() => {
-    // Получаем начальное состояние темы
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
@@ -25,7 +24,6 @@ export function ThemeToggle() {
     }
   };
 
-  // Показываем пустую иконку до загрузки состояния темы, чтобы избежать гидрации
   if (theme === null) {
     return (
       <Button

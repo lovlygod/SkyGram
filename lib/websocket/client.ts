@@ -33,27 +33,21 @@ export function useWebSocket(accountId: string): WebSocketManager {
   const maxReconnectAttempts = 5;
   const reconnectInterval = 3000; // 3 секунды
 
-  // Функция подключения
   const connect = (accountId: string) => {
-    // Если уже подключены, отключаемся
     if (wsRef.current) {
       wsRef.current.close();
     }
 
     setConnectionStatus('connecting');
 
-    // Определяем протокол в зависимости от окружения
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    // Для production может потребоваться указать конкретный порт
     const wsPort = process.env.NEXT_PUBLIC_WS_PORT || window.location.port;
     const wsHost = process.env.NEXT_PUBLIC_WS_HOST || window.location.hostname;
     
     let wsUrl;
     if (process.env.NODE_ENV === 'production') {
-      // В продакшене используем внешний WebSocket сервер
       wsUrl = `${protocol}//${wsHost}:${wsPort}/ws?accountId=${encodeURIComponent(accountId)}`;
     } else {
-      // В разработке можем использовать тот же хост
       wsUrl = `${protocol}//${window.location.host}/api/ws?accountId=${encodeURIComponent(accountId)}`;
     }
     
@@ -72,10 +66,8 @@ export function useWebSocket(accountId: string): WebSocketManager {
         setIsConnected(false);
         setConnectionStatus('disconnected');
         
-        // Обработка ошибки закрытия
         WebSocketErrorHandler.handleCloseError(event, accountId);
 
-        // Пытаемся переподключиться, если это не было вызвано пользователем
         if (event.code !== 1000 && reconnectAttemptsRef.current < maxReconnectAttempts) {
           if (reconnectTimeoutRef.current) {
             clearTimeout(reconnectTimeoutRef.current);
@@ -103,7 +95,6 @@ export function useWebSocket(accountId: string): WebSocketManager {
           const data: FileSystemEvent = JSON.parse(event.data);
           console.log('Received WebSocket message:', data);
           
-          // Обработка полученного сообщения
           handleWebSocketMessage(data);
         } catch (error) {
           console.error('Error parsing WebSocket message:', error);
@@ -116,7 +107,6 @@ export function useWebSocket(accountId: string): WebSocketManager {
     }
   };
 
-  // Функция отключения
   const disconnect = () => {
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
@@ -132,7 +122,6 @@ export function useWebSocket(accountId: string): WebSocketManager {
     setConnectionStatus('disconnected');
   };
 
-  // Функция отправки сообщения
   const send = (event: FileSystemEvent) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(event));
@@ -141,13 +130,10 @@ export function useWebSocket(accountId: string): WebSocketManager {
     }
   };
 
-  // Обработчик входящих сообщений
   const handleWebSocketMessage = (data: FileSystemEvent) => {
-    // Вызываем глобальное событие для обработки сообщения
     window.dispatchEvent(new CustomEvent('filesystem-update', { detail: data }));
   };
 
-  // Автоматическое подключение при изменении accountId
   useEffect(() => {
     if (accountId) {
       connect(accountId);
@@ -158,7 +144,6 @@ export function useWebSocket(accountId: string): WebSocketManager {
     };
   }, [accountId]);
 
-  // Очистка при размонтировании
   useEffect(() => {
     return () => {
       if (reconnectTimeoutRef.current) {
@@ -177,14 +162,12 @@ export function useWebSocket(accountId: string): WebSocketManager {
   };
 }
 
-// Функция для отправки события файловой системы
 export function sendFileSystemEvent(event: Omit<FileSystemEvent, 'timestamp'>) {
   const fullEvent: FileSystemEvent = {
     ...event,
     timestamp: Date.now(),
   };
   
-  // Отправляем событие через глобальный объект window, если доступно
   if (typeof window !== 'undefined' && (window as any).__WS_MANAGER__) {
     (window as any).__WS_MANAGER__.send(fullEvent);
   } else {

@@ -97,20 +97,15 @@ export const FileManagerProvider = ({
             }
             
             if (existingIndex >= 0) {
-              // Файл уже существует в списке
               if (payload.folderPath === currentPath) {
-                // Обновляем файл, если он в текущей папке
                 const updated = [...prev];
                 updated[existingIndex] = payload;
                 return updated;
               } else {
-                // Удаляем файл, если он был перемещен в другую папку
                 return prev.filter((_, index) => index !== existingIndex);
               }
             } else {
-              // Файл не существует в списке
               if (payload.folderPath === currentPath) {
-                // Добавляем файл, если он был перемещен в текущую папку
                 return [...prev, payload];
               }
               return prev;
@@ -127,19 +122,16 @@ export const FileManagerProvider = ({
           setFoldersData(prev => prev.map(folder => folder.id === payload.id ? payload : folder));
           break;
         default:
-          // Обновляем все данные при неизвестном типе события
           refetchFiles();
           refetchFolders();
           refetchCurrentFolder();
       }
 
-      // Устанавливаем таймер для сброса состояния загрузки
       setTimeout(() => setIsLoadingState(false), 100);
     };
 
     window.addEventListener('filesystem-update', handleFileSystemUpdate);
 
-    // Инициализируем начальные данные
     setFilesData(files || []);
     setFoldersData(folders || []);
     setCurrentFolderData(currentFolder || null);
@@ -150,7 +142,6 @@ export const FileManagerProvider = ({
     };
   }, [files, folders, currentFolder, filesLoading, foldersLoadingState, refetchFiles, refetchFolders, refetchCurrentFolder]);
 
-  // Обновляем состояние загрузки
   useEffect(() => {
     setIsLoadingState(filesLoading || foldersLoadingState);
   }, [filesLoading, foldersLoadingState]);
@@ -178,7 +169,6 @@ export const FileManagerProvider = ({
         },
         addSelectedFile: (file: File) => {
           setSelectedFiles(prev => {
-            // Проверяем, не содержится ли уже файл в списке
             const exists = prev.some(f => f.id === file.id);
             if (!exists) {
               return [...prev, file];

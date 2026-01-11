@@ -11,13 +11,11 @@ export function useTranslation() {
   }, []);
 
   const t = (key: keyof typeof translations.en) => {
-    // Если еще не на клиенте, возвращаем английский вариант для избежания гидрации
     if (!isClient) {
       return translations.en[key] || key;
     }
 
     if (!language) {
-      // Если язык еще не установлен, используем английский по умолчанию
       return translations.en[key] || key;
     }
     const langTranslations = translations[language];

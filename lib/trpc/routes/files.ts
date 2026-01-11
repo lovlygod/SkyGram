@@ -35,7 +35,6 @@ export const toggleBookmarkFile = procedure
   .input(z.number())
   .mutation(async ({ input }) => {
     const result = await services.toggleBookmarkFile(input);
-    // Отправляем событие обновлении файла
     const updatedFile = await services.getSingleFile({ id: input });
     if (updatedFile) {
       await broadcastEvent(updatedFile.accountId, {
@@ -83,14 +82,11 @@ export const restoreFileFromTrash = procedure
     fileId: z.number(),
   }))
   .mutation(async ({ input }) => {
-    // Получаем файл перед восстановлением
     const fileBeforeRestore = await services.getSingleFile({ id: input.fileId });
     
     const result = await services.restoreFileFromTrash(input.fileId);
     
-    // Если файл существовал до восстановления, отправляем событие
     if (fileBeforeRestore) {
-      // Отправляем событие об обновлении файла (теперь isDeleted = false)
       await broadcastEvent(fileBeforeRestore.accountId, {
         type: 'FILE_UPDATED',
         accountId: fileBeforeRestore.accountId,
@@ -120,7 +116,6 @@ export const copyFile = procedure
     return services.copyFile({ fileId: input.fileId });
   });
 
-// Новые маршруты для пакетных операций
 export const batchDeleteFiles = procedure
   .input(z.array(z.number()))
   .mutation(async ({ input }) => {

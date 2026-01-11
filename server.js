@@ -1,5 +1,3 @@
-// server.js
-// Этот файл позволяет запустить WebSocket сервер вместе с Next.js
 const { createServer } = require('http');
 const { parse } = require('url');
 const next = require('next');
@@ -17,11 +15,9 @@ const handle = app.getRequestHandler();
 app.prepare().then(() => {
   const server = createServer(async (req, res) => {
     try {
-      // Parse the request URL
       const parsedUrl = parse(req.url, true);
       const { pathname, query } = parsedUrl;
 
-      // Обработка обычных HTTP запросов
       await handle(req, res, parsedUrl);
     } catch (err) {
       console.error('Error occurred handling request:', err);
@@ -30,7 +26,6 @@ app.prepare().then(() => {
     }
   });
 
-  // Инициализация WebSocket сервера поверх HTTP сервера Next.js
   wsManager.init(server);
 
   server.listen(port, (err) => {

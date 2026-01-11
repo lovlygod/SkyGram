@@ -17,7 +17,7 @@ interface TrashFile {
   chatId: string;
   messageId: string;
   createdAt: Date;
-  deletedAt: string | null; // deletedAt может быть null
+  deletedAt: string | null;
 }
 
 interface TrashFilesProps {
@@ -43,7 +43,6 @@ export function TrashFiles({ accountId, onRestore }: TrashFilesProps) {
     setIsRestoring(fileId);
     
     try {
-      // Восстановление файла
       await restoreFile.mutateAsync({ fileId });
       toast.success(t('File restored successfully'));
       refetch();
@@ -60,10 +59,8 @@ export function TrashFiles({ accountId, onRestore }: TrashFilesProps) {
     setIsDeleting(fileId);
     
     try {
-      // Удаление файла навсегда из телеграма
       await client.deleteMessages('me', [parseInt(messageId)], { revoke: true });
-      
-      // Удаление из базы данных
+
       await deleteFilePermanently.mutateAsync({ fileId });
       toast.success(t('File deleted permanently'));
       refetch();

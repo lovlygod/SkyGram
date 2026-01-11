@@ -73,7 +73,6 @@ export function createFolder(
     .then((res) => {
       const newFolder = res[0];
       
-      // Отправляем событие через WebSocket
       broadcastEvent(input.accountId, {
         type: 'FOLDER_CREATED',
         accountId: input.accountId,
@@ -103,7 +102,6 @@ export function deleteFolder(
     .returning()
     .then((res) => {
       if (res.length > 0) {
-        // Отправляем событие через WebSocket
         broadcastEvent(input.accountId, {
           type: 'FOLDER_DELETED',
           accountId: input.accountId,
@@ -148,7 +146,6 @@ export async function renameFolder(
     .then((res) => {
       const updatedFolder = res[0];
       
-      // Отправляем событие через WebSocket
       broadcastEvent(folder.accountId, {
         type: 'FOLDER_RENAMED',
         accountId: folder.accountId,

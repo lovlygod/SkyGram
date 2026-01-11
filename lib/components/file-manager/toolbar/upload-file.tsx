@@ -63,7 +63,6 @@ function UploadModal() {
     searchParam?.get('path') ?? '/';
 
   async function uploadFile(file: File) {
-      // Проверяем, не был ли файл отменен до начала загрузки
       if (cancelledFiles.has(file.name)) {
         return;
       }
@@ -74,7 +73,6 @@ function UploadModal() {
         file.name,
         file.size,
         '',
-        // @ts-ignore
         buffer,
       );
   
@@ -84,16 +82,13 @@ function UploadModal() {
           forceDocument: true,
           workers: 10,
           progressCallback: (progress) => {
-            // Проверяем, не был ли файл отменен во время загрузки
             if (cancelledFiles.has(file.name)) {
-              // Здесь нельзя напрямую отменить загрузку, но можно прекратить дальнейшие действия
               return;
             }
             setProgress(progress * 100);
           },
         });
   
-        // Проверяем снова после завершения загрузки
         if (cancelledFiles.has(file.name)) {
           return;
         }
@@ -117,7 +112,6 @@ function UploadModal() {
           });
         }
       } catch (error) {
-        // Если файл был отменен, игнорируем ошибки
         if (cancelledFiles.has(file.name)) {
           return;
         }
@@ -151,7 +145,6 @@ function UploadModal() {
     setIsUploading(false);
     setProgress(0);
     setCurrentFileIndex(0);
-    // Сбрасываем отмененные файлы после завершения загрузки
     setCancelledFiles(new Set());
   }
 
@@ -168,7 +161,6 @@ function UploadModal() {
         onOpenChange={(val) => {
           if (progress > 0) return;
           if (!val) {
-            // Сбрасываем отмененные файлы при закрытии диалога
             setCancelledFiles(new Set());
           }
           setIsOpen(val);
@@ -219,7 +211,6 @@ function UploadModal() {
                     size={16}
                     onClick={() => {
                       const fileToRemove = files[index];
-                      // Добавляем имя файла в множество отмененных
                       setCancelledFiles(prev => new Set(prev).add(fileToRemove.name));
                       
                       setFiles(

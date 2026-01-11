@@ -44,7 +44,6 @@ function FileInfo({
           throw new Error('Message not found');
         }
 
-        // Скачивание файла с отслеживанием прогресса
         const buffer = await client.downloadMedia(message, {
           progressCallback: (received, total) => {
             const progress = (Number(received) / Number(total)) * 100;
@@ -144,11 +143,9 @@ function FileInfo({
           fileSize={file.size}
           progress={downloadProgress}
           onDownloadComplete={() => {
-            // Дополнительные действия после завершения скачивания
-          }}
-          onCancel={() => {
-            // Обработка отмены скачивания
-          }}
+            }}
+            onCancel={() => {
+            }}
           onError={(error) => {
             console.error('Download error:', error);
           }}

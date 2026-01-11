@@ -45,7 +45,6 @@ function ClientProvider({
           )
         ) {
           _.disconnect();
-          // setRelogin(true);
           toast.dismiss(id);
           toast.warning(
             'The session is invalid. Please re-login.',
