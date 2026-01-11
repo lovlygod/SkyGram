@@ -107,42 +107,43 @@ export function DeleteConfirmation({
                   {t('You are about to delete the file')} <strong>"{file.filename}"</strong>.
                   {t(' The file will be moved to trash and can be restored within 30 days.')}
                 </AlertDialogDescription>
-                
-                <div className="mt-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>{t('Auto-delete info')}</span>
-                    <span className="font-semibold text-destructive">
-                      {timeLeft} {t('seconds')}
-                    </span>
-                  </div>
-                  
-                  <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
-                    <motion.div
-                      className="h-full bg-destructive"
-                      initial={{ width: '0%' }}
-                      animate={{ width: `${(timeLeft / 5) * 100}%` }}
-                      transition={{ duration: 1, ease: 'linear' }}
-                    />
-                  </div>
-                </div>
               </AlertDialogHeader>
               
-              <AlertDialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={handleCancel}
-                  className="mr-2"
-                >
-                  {t('Cancel')}
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={handleConfirm}
-                  disabled={isAnimating}
-                >
-                  {t('Delete')}
-                </Button>
-              </AlertDialogFooter>
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-sm mb-2">
+                  <span>{t('Auto-delete info')}</span>
+                  <span className="font-semibold text-destructive">
+                    {timeLeft} {t('seconds')}
+                  </span>
+                </div>
+                
+                <div className="mb-4 h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <motion.div
+                    className="h-full bg-destructive"
+                    initial={{ width: '0%' }}
+                    animate={{ width: `${(timeLeft / 5) * 100}%` }}
+                    transition={{ duration: 1, ease: 'linear' }}
+                  />
+                </div>
+                
+                <div className="flex space-x-2">
+                  <Button
+                    variant="outline"
+                    onClick={handleCancel}
+                    className="flex-1"
+                  >
+                    {t('Cancel')}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleConfirm}
+                    disabled={isAnimating}
+                    className="flex-1"
+                  >
+                    {t('Delete')}
+                  </Button>
+                </div>
+              </div>
             </motion.div>
           </AlertDialogContent>
         )}

@@ -27,7 +27,7 @@ async function Home() {
             draggable={false}
           />
           <h1 className="pt-4 text-4xl font-bold text-white">
-            DriveGram
+            SkyGram
           </h1>
           <p className="text-lg text-white/80">
             Personal cloud storage powered by
@@ -39,7 +39,7 @@ async function Home() {
   }
 
   return (
-    <div className="flex h-screen items-center justify-center bg-muted/50">
+    <div className="flex h-screen items-center justify-center bg-muted/50 animate-fade-in">
       <AccountPicker accounts={accounts} />
     </div>
   );

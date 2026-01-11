@@ -60,7 +60,7 @@ function FolderItem({
               : isRightClicked
                 ? 'bg-accent'
                 : 'bg-transparent hover:bg-accent'
-          }`}
+          } transition-all duration-200 ease-in-out hover:scale-105`}
           onClick={(ev) => {
             ev.stopPropagation();
             onSelect?.();
@@ -72,7 +72,7 @@ function FolderItem({
         >
           {/* Индикатор выбора */}
           {isSelected && (
-            <div className="absolute top-1 right-1 bg-primary rounded-full p-1 flex items-center justify-center z-10">
+            <div className="absolute top-1 right-1 bg-primary rounded-full p-1 flex items-center justify-center z-10 animate-scale-in shadow-lg">
               <CheckIcon className="text-white dark:text-primary-foreground w-3 h-3" />
             </div>
           )}

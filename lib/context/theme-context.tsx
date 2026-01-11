@@ -14,26 +14,37 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+// Вспомогательные функции для получения начальных значений синхронно
+function getInitialTheme(): Theme {
+  if (typeof window !== 'undefined') {
+    const savedTheme = localStorage.getItem('theme') as Theme | null;
+    if (savedTheme) {
+      return savedTheme;
+    }
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return systemPrefersDark ? 'dark' : 'light';
+  }
+  return 'light'; // Значение по умолчанию для серверного рендеринга
+}
+
+function getInitialLanguage(): Language {
+  if (typeof window !== 'undefined') {
+    const savedLanguage = localStorage.getItem('language') as Language | null;
+    if (savedLanguage) {
+      return savedLanguage;
+    }
+  }
+  return 'en'; // Значение по умолчанию
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('light');
-  const [language, setLanguage] = useState<Language>('en');
+  const [theme, setTheme] = useState<Theme>(() => getInitialTheme());
+  const [language, setLanguage] = useState<Language>(() => getInitialLanguage());
 
   useEffect(() => {
-    // Проверяем сохраненные настройки пользователя
-    const savedTheme = localStorage.getItem('theme') as Theme | null;
-    const savedLanguage = localStorage.getItem('language') as Language | null;
-    
-    // Проверяем системную тему
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
-    
-    setTheme(initialTheme);
-    document.documentElement.classList.toggle('dark', initialTheme === 'dark');
-    
-    if (savedLanguage) {
-      setLanguage(savedLanguage);
-    }
-  }, []);
+    // Обновляем тему при монтировании компонента
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
@@ -45,14 +56,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setLanguageHandler = (lang: Language) => {
     setLanguage(lang);
     localStorage.setItem('language', lang);
+    // Обновляем атрибут языка в html элементе
+    document.documentElement.lang = lang;
   };
 
   return (
-    <ThemeContext.Provider value={{ 
-      theme, 
-      language, 
-      toggleTheme, 
-      setLanguage: setLanguageHandler 
+    <ThemeContext.Provider value={{
+      theme,
+      language,
+      toggleTheme,
+      setLanguage: setLanguageHandler
     }}>
       {children}
     </ThemeContext.Provider>

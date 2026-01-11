@@ -182,7 +182,7 @@ function FileItem({
                   : isRightClicked
                     ? 'bg-accent'
                     : 'bg-transparent hover:bg-accent'
-              }`}
+              } transition-all duration-200 ease-in-out hover:scale-105`}
             onClick={(ev) => {
               ev.stopPropagation();
               onSelect?.(ev);
@@ -191,20 +191,20 @@ function FileItem({
           >
             {/* Индикатор выбора */}
             {isSelected && (
-              <div className="absolute top-1 right-1 bg-primary rounded-full p-1 flex items-center justify-center z-10">
+              <div className="absolute top-1 right-1 bg-primary rounded-full p-1 flex items-center justify-center z-10 animate-scale-in shadow-lg">
                 <CheckIcon className="text-white dark:text-primary-foreground w-3 h-3" />
               </div>
             )}
             
             <Icon size={32} />
-
+  
             <h1 className="line-clamp-2 text-center">
               {file.filename}
             </h1>
-
+  
             {/* Иконка избранного всегда отображается, но с разными классами для активного/неактивного состояния */}
             <BookmarkIcon
-              className={`${file.isBookmarked ? 'fill-primary text-primary' : 'text-gray-400'} absolute right-2 top-2 cursor-pointer hover:opacity-80`}
+              className={`${file.isBookmarked ? 'fill-primary text-primary' : 'text-gray-400'} absolute right-2 top-2 cursor-pointer hover:opacity-80 transition-all duration-200`}
               size={15}
               onClick={(e) => {
                 e.stopPropagation(); // Предотвращаем всплытие события

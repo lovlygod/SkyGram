@@ -3,12 +3,12 @@
 import { Globe } from 'lucide-react';
 
 import { useTheme } from '#/lib/context/theme-context';
+import { ClientOnlySelect } from './client-only-select';
 
 import {
   Button,
 } from '../ui/button';
 import {
-  Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
@@ -18,20 +18,23 @@ import {
 export function LanguageSwitcher() {
   const { language, setLanguage } = useTheme();
 
+  const handleLanguageChange = (value: 'en' | 'ru' | 'uk' | 'kk') => {
+    setLanguage(value);
+ };
+
   return (
     <div className="flex items-center">
       <Globe className="h-4 w-4 mr-2" />
-      <Select value={language} onValueChange={(value: 'en' | 'ru' | 'uk' | 'kk') => setLanguage(value)}>
-        <SelectTrigger className="w-[80px] h-8">
-          <SelectValue placeholder="Lang" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="en">EN</SelectItem>
-          <SelectItem value="ru">RU</SelectItem>
-          <SelectItem value="uk">UK</SelectItem>
-          <SelectItem value="kk">KK</SelectItem>
-        </SelectContent>
-      </Select>
+      <ClientOnlySelect
+        value={language}
+        onValueChange={handleLanguageChange}
+        triggerClassName="w-[80px] h-8"
+      >
+        <SelectItem value="en">EN</SelectItem>
+        <SelectItem value="ru">RU</SelectItem>
+        <SelectItem value="uk">UK</SelectItem>
+        <SelectItem value="kk">KK</SelectItem>
+      </ClientOnlySelect>
     </div>
   );
 }

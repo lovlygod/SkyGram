@@ -87,7 +87,7 @@ function ListItems() {
           </div>
         ) : (
           <div
-            className="grid h-full flex-1 grid-cols-3 content-start justify-evenly gap-1 overflow-auto p-2 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
+            className="grid h-full flex-1 grid-cols-2 content-start justify-evenly gap-1 overflow-auto p-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7"
             onClick={() => {
               setSelectedFile(null);
               setSelectedFolder(null);
