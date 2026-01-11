@@ -157,7 +157,7 @@ Access your bookmarked files quickly through the dedicated bookmarks section in 
 
 ## Architecture
 
-![Architecture Diagram](./public/SkyGram%20Architecture.png)
+![Architecture Diagram](./public/SkyGram-Architecture.png)
 
 ## Environment Variables
 
