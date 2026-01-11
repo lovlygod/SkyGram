@@ -74,3 +74,24 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Градиент для названия SkyGram */
+.skygram-title {
+  background: linear-gradient(90deg, #FC3FA1 0%, #7853FC 50%, #3DBAC9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: normal;
+  font-weight: 700;
+}
+
+.dark .skygram-title {
+  background: linear-gradient(90deg, #FC3FA1 0%, #7853FC 50%, #3DBAC9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: normal;
+  font-weight: 700;
+}

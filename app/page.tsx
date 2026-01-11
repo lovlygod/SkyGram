@@ -26,7 +26,7 @@ async function Home() {
             height={40}
             draggable={false}
           />
-          <h1 className="pt-4 text-4xl font-bold text-white">
+          <h1 className="pt-4 text-4xl font-bold skygram-title">
             SkyGram
           </h1>
           <p className="text-lg text-white/80">

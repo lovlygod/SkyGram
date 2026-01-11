@@ -40,7 +40,7 @@ function Header({
         className="h-11 w-11 rounded-xl"
         draggable="false"
       />
-      <h1 className="text-xl font-semibold">
+      <h1 className="text-xl font-semibold skygram-title">
         {t('SkyGram')}
       </h1>
       <div className="flex-1" />
