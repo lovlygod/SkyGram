@@ -154,6 +154,10 @@ SkyGram теперь поддерживает выбор нескольких ф
 - **Анимации**: Framer Motion
 - **Хранение файлов**: Telegram API
 
+## Architecture
+
+![Architecture Diagram](./public/SkyGram-Architecture.png)
+
 ## Переменные окружения
 
 - `TELEGRAM_API_ID`: Ваш Telegram API ID с my.telegram.org

@@ -35,7 +35,6 @@ It uses SQLite as a database to store user data and files. You can run the proje
 - [ ] Link Google Drive
 - [ ] Generate shareable link
 - [ ] Custom chat for uploading files
-- [ ] Advanced file preview capabilities
 
 ## 🚀 Installation
 
