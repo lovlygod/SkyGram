@@ -1,6 +1,6 @@
-# ☁️ SkyGram - Personal Cloud Storage
+# SkyGram - Personal Cloud Storage
 
-SkyGram is a personal cloud storage application that uses Telegram as a drive. It allows you to upload, download, and organize your files using the Telegram API. The project is built using [Next.js](https://nextjs.org) and [Gramjs](https://gram.js.org).
+SkyGram is a personal cloud storage application that uses Telegram as a drive. It allows you to upload, download, and organize your files using the Telegram API. The project is built using [Next.js](https://nextjs.org) and [Telegram Bot API](https://core.telegram.org/bots/api).
 
 ✨ The project is actively under development, expect frequent updates and new features.
 
@@ -13,13 +13,21 @@ It uses SQLite as a database to store user data and files. You can run the proje
 ## Features
 
 - ✨ Clean UI
-- 📁 Organize your content
+- 📁 Organize your content in folders
 - 📤 Upload/download files
 - 🔖 Bookmark files
 - 🗑️ Move to trash
-- 📱 Multiple accounts
+- 📱 Multiple accounts support
 - ✅ Select multiple files at once
 - 🔄 Perform batch operations (delete, move, bookmark)
+- 📂 Create and manage folders
+- 📄 File information display
+- 🔄 Real-time updates via WebSocket
+- 🌐 Multi-language support
+- ⚙️ Account settings management
+- 🗂️ Trash management with restore capability
+- 📚 Bookmarks management
+- 🎨 Dark/light theme support
 
 ## Roadmap
 
@@ -27,6 +35,7 @@ It uses SQLite as a database to store user data and files. You can run the proje
 - [ ] Link Google Drive
 - [ ] Generate shareable link
 - [ ] Custom chat for uploading files
+- [ ] Advanced file preview capabilities
 
 ## 🚀 Installation
 
@@ -94,10 +103,13 @@ pnpm dev
 - Move files between folders
 - Bookmark important files for quick access
 - Move files to trash when no longer needed
+- Rename files and folders
+- Copy files
+- View file information
 
 ### Multiple File Selection and Batch Operations
 
-SkyGram now supports selecting multiple files and performing batch operations:
+SawerMediaBot now supports selecting multiple files and performing batch operations:
 
 #### Selecting Multiple Files
 
@@ -117,3 +129,47 @@ Once you have selected multiple files, a toolbar will appear at the top with the
 - **Cancel selection**: Deselect all files
 
 The batch operations are processed efficiently and updates are reflected in real-time in the UI.
+
+### Real-time Updates
+
+The application includes real-time updates via WebSocket, ensuring that any changes made from different devices or sessions are immediately reflected in the UI.
+
+### Trash Management
+
+Files moved to trash can be restored or permanently deleted. Access the trash through the navigation panel.
+
+### Bookmarks
+
+Access your bookmarked files quickly through the dedicated bookmarks section in the navigation panel.
+
+## Technical Details
+
+- **Frontend**: Next.js 14 with App Router
+- **Backend**: Node.js with custom WebSocket implementation
+- **Database**: SQLite with Drizzle ORM
+- **API**: tRPC for typed API calls
+- **Authentication**: Telegram API
+- **UI Components**: Radix UI and custom components
+- **Styling**: Tailwind CSS with animations
+- **State Management**: React Context API and tRPC
+- **Animations**: Framer Motion
+- **File Storage**: Telegram API
+
+## Environment Variables
+
+- `TELEGRAM_API_ID`: Your Telegram API ID from my.telegram.org
+- `TEGRAM_API_HASH`: Your Telegram API hash from my.telegram.org
+- `SERVER_URL`: The URL where your server is accessible
+- `DATABASE_URL`: Path to your SQLite database file (defaults to local file)
+
+## Contributing
+
+We welcome contributions to SawerMediaBot! Feel free to fork the repository, make changes, and submit pull requests.
+
+## License
+
+This project is licensed under the MIT License.
+
+## Readme in other languages
+
+- [Русский](README_RU.md)
