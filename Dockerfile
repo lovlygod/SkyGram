@@ -14,7 +14,7 @@ RUN pnpm install --frozen-lockfile
 FROM dev-deps AS build
 COPY . .
 ENV NODE_ENV=production
-ENV DATABASE_URL=file:./database.sqlite
+ENV DATABASE_URL=file:./SkyGram.sqlite
 ENV TELEGRAM_API_ID=0
 ENV TELEGRAM_API_HASH=0
 RUN pnpm drizzle-kit push:sqlite
@@ -25,10 +25,10 @@ COPY --from=build /app/.next .next
 COPY --from=build /app/public public
 COPY --from=build /app/package.json package.json
 COPY --from=prod-deps /app/node_modules node_modules
-COPY --from=build /app/database.sqlite database.sqlite
+COPY --from=build /app/SkyGram.sqlite database.sqlite
 
 ENV NODE_ENV=production
-ENV DATABASE_URL=file:./database.sqlite
+ENV DATABASE_URL=file:./SkyGram.sqlite
 EXPOSE 3000
 
 CMD ["npm", "start"]
