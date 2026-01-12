@@ -1,6 +1,6 @@
 <div align="center">
 
-![SkyGram](./public/SkyGram-Architecture.png)
+![SkyGram](./public/SkyGram.png)
 
 # SkyGram - Personal Cloud Storage
 
