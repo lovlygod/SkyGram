@@ -1,4 +1,4 @@
-![Logo](./public/logo.png){width=32 height=32} # SkyGram - Personal Cloud Storage
+<img src="./public/logo.png" width="32" height="32" style="vertical-align: middle;"> # SkyGram - Personal Cloud Storage
 
 SkyGram is a personal cloud storage application that uses Telegram as a drive. It allows you to upload, download, and organize your files using the Telegram API. The project is built using [Next.js](https://nextjs.org) and [Telegram Bot API](https://core.telegram.org/bots/api).
 
