@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 import {
   Select,
-  SelectContent,
+ SelectContent,
   SelectGroup,
   SelectItem,
   SelectLabel,
@@ -17,12 +17,12 @@ type ClientOnlySelectProps = {
   onValueChange: (value: string) => void;
   children: React.ReactNode;
   triggerClassName?: string;
- contentClassName?: string;
+  contentClassName?: string;
 };
 
 export function ClientOnlySelect({
   value,
-  onValueChange,
+ onValueChange,
   children,
   triggerClassName,
   contentClassName

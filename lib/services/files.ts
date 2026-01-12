@@ -1,9 +1,26 @@
-import { eq, inArray } from 'drizzle-orm';
+import { eq, inArray, and, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 import db from '../db';
-import { files } from '../db/schema';
+import { files, folders } from '../db/schema';
 import { broadcastEvent } from './event-broadcaster';
+
+function isValidPath(path: string): boolean {
+  if (path.includes('../') || path.includes('..\\') || path.startsWith('../') || path.startsWith('..\\')) {
+    return false;
+  }
+  
+  try {
+    const decodedPath = decodeURIComponent(path);
+    if (decodedPath.includes('../') || decodedPath.includes('..\\')) {
+      return false;
+    }
+  } catch {
+    return false;
+  }
+  
+  return true;
+}
 
 async function sendWebSocketEvent(accountId: string, event: any) {
   try {
@@ -21,7 +38,7 @@ type GetFilesInput = {
   folderPath: string;
 };
 export function getFiles(input: GetFilesInput) {
-  const files = db.query.files.findMany({
+  const filesResult = db.query.files.findMany({
     where(fields, operators) {
       return operators.and(
         operators.eq(
@@ -34,7 +51,7 @@ export function getFiles(input: GetFilesInput) {
         ),
         operators.eq(
           fields.isDeleted,
-          false, // Исключаем удаленные файлы
+          false,
         ),
       );
     },
@@ -42,7 +59,8 @@ export function getFiles(input: GetFilesInput) {
       return operators.asc(fields.filename);
     },
   });
-  return files;
+  
+  return filesResult;
 }
 
 type GetSingleFileInput = {
@@ -75,10 +93,27 @@ type CreateFileInput = z.infer<
 export async function createFile(
   input: CreateFileInput,
 ) {
+  if (!isValidPath(input.folderPath)) {
+    throw new Error('Invalid folder path');
+  }
+  
   const file = await db
     .insert(files)
     .values(input)
     .returning();
+
+  await db
+    .update(folders)
+    .set({
+      totalFiles: sql`${folders.totalFiles} + 1`,
+      totalSize: sql`${folders.totalSize} + ${input.size}`
+    })
+    .where(
+      and(
+        eq(folders.accountId, input.accountId),
+        eq(folders.path, input.folderPath)
+      )
+    );
 
   await sendWebSocketEvent(input.accountId, {
     type: 'FILE_ADDED',
@@ -105,6 +140,21 @@ export async function deleteFile(id: number) {
     .where(eq(files.id, id))
     .returning({ id: files.id });
 
+  if (file.folderPath) {
+    await db
+      .update(folders)
+      .set({
+        totalFiles: sql`${folders.totalFiles} - 1`,
+        totalSize: sql`${folders.totalSize} - ${file.size}`
+      })
+      .where(
+        and(
+          eq(folders.accountId, file.accountId),
+          eq(folders.path, file.folderPath)
+        )
+      );
+  }
+
   if (file) {
     await sendWebSocketEvent(file.accountId, {
       type: 'FILE_REMOVED',
@@ -124,7 +174,7 @@ export async function toggleBookmarkFile(
     where(fields, operators) {
       return operators.eq(fields.id, id);
     },
- });
+  });
 
   if (!file) {
     return null;
@@ -137,6 +187,32 @@ export async function toggleBookmarkFile(
     .returning()
     .then((res) => res[0]);
 
+  if (file.folderPath) {
+    const bookmarkedCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(files)
+      .where(
+        and(
+          eq(files.folderPath, file.folderPath),
+          eq(files.isBookmarked, true)
+        )
+      )
+      .then(result => result[0]?.count || 0);
+
+    await db
+      .update(folders)
+      .set({
+        totalFiles: sql`${folders.totalFiles}`,
+        totalSize: sql`${folders.totalSize}`,
+      })
+      .where(
+        and(
+          eq(folders.accountId, file.accountId),
+          eq(folders.path, file.folderPath)
+        )
+      );
+  }
+
   await sendWebSocketEvent(file.accountId, {
     type: 'FILE_UPDATED',
     accountId: file.accountId,
@@ -144,7 +220,7 @@ export async function toggleBookmarkFile(
     timestamp: Date.now(),
   });
 
- return updatedFile.isBookmarked;
+  return updatedFile.isBookmarked;
 }
 
 type RenameFileInput = {
@@ -164,7 +240,6 @@ export async function renameFile(
   
   const updatedFile = result[0];
   
-  // Отправляем событие через WebSocket
   if (updatedFile) {
     await sendWebSocketEvent(updatedFile.accountId, {
       type: 'FILE_UPDATED',
@@ -218,6 +293,21 @@ export async function restoreFileFromTrash(fileId: number) {
 
   const updatedFile = result[0];
 
+  if (file.folderPath) {
+    await db
+      .update(folders)
+      .set({
+        totalFiles: sql`${folders.totalFiles} + 1`,
+        totalSize: sql`${folders.totalSize} + ${file.size}`
+      })
+      .where(
+        and(
+          eq(folders.accountId, file.accountId),
+          eq(folders.path, file.folderPath)
+        )
+      );
+  }
+
   sendWebSocketEvent(file.accountId, {
     type: 'FILE_UPDATED',
     accountId: file.accountId,
@@ -246,11 +336,11 @@ export async function deleteFilePermanently(fileId: number) {
     timestamp: Date.now(),
   });
 
- return result;
+  return result;
 }
 
 export async function getFileStats(
-  accountId: string,
+ accountId: string,
 ) {
   const files = await db.query.files.findMany({
     where(fields, operators) {
@@ -267,10 +357,10 @@ export async function getFileStats(
   const totalSize: number = files
     .map((file) => file.size)
     .reduce((acc, size) => acc + size, 0);
- return {
+  return {
     totalFiles: files.length,
     totalSize,
- };
+  };
 }
 
 export async function moveFile(fileId: number, targetPath: string) {
@@ -282,6 +372,12 @@ export async function moveFile(fileId: number, targetPath: string) {
     throw new Error(`File with ID ${fileId} not found`);
   }
 
+  if (!isValidPath(targetPath)) {
+    throw new Error('Invalid target path');
+  }
+
+  const oldFolderPath = file.folderPath;
+
   const result = await db
     .update(files)
     .set({ folderPath: targetPath })
@@ -289,6 +385,34 @@ export async function moveFile(fileId: number, targetPath: string) {
     .returning();
 
   const updatedFile = result[0];
+
+  if (oldFolderPath !== targetPath) {
+    await db
+      .update(folders)
+      .set({
+        totalFiles: sql`${folders.totalFiles} - 1`,
+        totalSize: sql`${folders.totalSize} - ${file.size}`
+      })
+      .where(
+        and(
+          eq(folders.accountId, file.accountId),
+          eq(folders.path, oldFolderPath || '/')
+        )
+      );
+
+    await db
+      .update(folders)
+      .set({
+        totalFiles: sql`${folders.totalFiles} + 1`,
+        totalSize: sql`${folders.totalSize} + ${file.size}`
+      })
+      .where(
+        and(
+          eq(folders.accountId, file.accountId),
+          eq(folders.path, targetPath)
+        )
+      );
+  }
 
   await sendWebSocketEvent(file.accountId, {
     type: 'FILE_UPDATED',
@@ -304,7 +428,6 @@ type CopyFileInput = {
  fileId: number;
 };
 export async function copyFile(input: CopyFileInput) {
-  // Получаем оригинальный файл
   const originalFile = await db.query.files.findFirst({
     where: (fields, operators) => operators.eq(fields.id, input.fileId),
   });
@@ -356,8 +479,7 @@ export async function copyFile(input: CopyFileInput) {
     counter++;
   }
 
-  // Создаем копию файла с новым именем
-  const newFile = await db
+const newFile = await db
     .insert(files)
     .values({
       filename: finalName,
@@ -372,6 +494,21 @@ export async function copyFile(input: CopyFileInput) {
     })
     .returning();
 
+  if (originalFile.folderPath) {
+    await db
+      .update(folders)
+      .set({
+        totalFiles: sql`${folders.totalFiles} + 1`,
+        totalSize: sql`${folders.totalSize} + ${originalFile.size}`
+      })
+      .where(
+        and(
+          eq(folders.accountId, originalFile.accountId),
+          eq(folders.path, originalFile.folderPath)
+        )
+      );
+  }
+
   sendWebSocketEvent(originalFile.accountId, {
     type: 'FILE_ADDED',
     accountId: originalFile.accountId,
@@ -382,12 +519,16 @@ export async function copyFile(input: CopyFileInput) {
   return newFile[0];
 }
 
-// Новые методы для пакетных операций
 export async function batchDeleteFiles(fileIds: number[]) {
   if (fileIds.length === 0) return [];
 
-  const filesInfo = await db.select({ accountId: files.accountId }).from(files).where(inArray(files.id, fileIds));
-  if (filesInfo.length === 0) return [];
+  const filesToDelete = await db.select({
+    accountId: files.accountId,
+    folderPath: files.folderPath,
+    size: files.size
+  }).from(files).where(inArray(files.id, fileIds));
+
+  if (filesToDelete.length === 0) return [];
 
   const result = await db
     .update(files)
@@ -395,13 +536,41 @@ export async function batchDeleteFiles(fileIds: number[]) {
     .where(inArray(files.id, fileIds))
     .returning({ id: files.id });
 
-  const accountId = filesInfo[0].accountId;
+  const folderStatsMap = new Map<string, { totalFiles: number, totalSize: number }>();
+  
+  for (const file of filesToDelete) {
+    if (file.folderPath) {
+      const key = `${file.accountId}-${file.folderPath}`;
+      const stats = folderStatsMap.get(key) || { totalFiles: 0, totalSize: 0 };
+      stats.totalFiles += 1;
+      stats.totalSize += file.size;
+      folderStatsMap.set(key, stats);
+    }
+  }
+
+   const entries = Array.from(folderStatsMap.entries());
+   for (const [key, stats] of entries) {
+     const [accountId, folderPath] = key.split('-').slice(0, 2);
+     await db
+       .update(folders)
+       .set({
+         totalFiles: sql`${folders.totalFiles} - ${stats.totalFiles}`,
+         totalSize: sql`${folders.totalSize} - ${stats.totalSize}`
+       })
+       .where(
+         and(
+           eq(folders.accountId, accountId),
+           eq(folders.path, folderPath)
+         )
+       );
+   }
+
+  const accountId = filesToDelete[0].accountId;
 
   await broadcastEvent(accountId, {
     type: 'BATCH_FILE_DELETED',
     accountId: accountId,
     payload: { fileIds: fileIds },
-    timestamp: Date.now(),
   });
 
   return result;
@@ -410,21 +579,82 @@ export async function batchDeleteFiles(fileIds: number[]) {
 export async function batchMoveFiles(fileIds: number[], targetPath: string) {
   if (fileIds.length === 0) return [];
 
+  if (!isValidPath(targetPath)) {
+    throw new Error('Invalid target path');
+  }
+
+  const filesToMove = await db.select({
+    accountId: files.accountId,
+    folderPath: files.folderPath,
+    size: files.size
+  }).from(files).where(inArray(files.id, fileIds));
+
   const result = await db
     .update(files)
     .set({ folderPath: targetPath })
     .where(inArray(files.id, fileIds))
     .returning();
 
-  // Определяем accountId из первого файла
-  const firstFile = result[0];
+  const oldFolderStatsMap = new Map<string, { totalFiles: number, totalSize: number }>();
+  const newFolderStatsMap = new Map<string, { totalFiles: number, totalSize: number }>();
+  
+  for (const file of filesToMove) {
+    if (file.folderPath) {
+      const oldKey = `${file.accountId}-${file.folderPath}`;
+      const oldStats = oldFolderStatsMap.get(oldKey) || { totalFiles: 0, totalSize: 0 };
+      oldStats.totalFiles += 1;
+      oldStats.totalSize += file.size;
+      oldFolderStatsMap.set(oldKey, oldStats);
+    }
+    
+    const newKey = `${file.accountId}-${targetPath}`;
+    const newStats = newFolderStatsMap.get(newKey) || { totalFiles: 0, totalSize: 0 };
+    newStats.totalFiles += 1;
+    newStats.totalSize += file.size;
+    newFolderStatsMap.set(newKey, newStats);
+  }
+
+  const oldEntries = Array.from(oldFolderStatsMap.entries());
+  for (const [key, stats] of oldEntries) {
+    const [accountId, folderPath] = key.split('-').slice(0, 2);
+    await db
+      .update(folders)
+      .set({
+        totalFiles: sql`${folders.totalFiles} - ${stats.totalFiles}`,
+        totalSize: sql`${folders.totalSize} - ${stats.totalSize}`
+      })
+      .where(
+        and(
+          eq(folders.accountId, accountId),
+          eq(folders.path, folderPath)
+        )
+      );
+  }
+
+  const newEntries = Array.from(newFolderStatsMap.entries());
+  for (const [key, stats] of newEntries) {
+    const [accountId, folderPath] = key.split('-').slice(0, 2);
+    await db
+      .update(folders)
+      .set({
+        totalFiles: sql`${folders.totalFiles} + ${stats.totalFiles}`,
+        totalSize: sql`${folders.totalSize} + ${stats.totalSize}`
+      })
+      .where(
+        and(
+          eq(folders.accountId, accountId),
+          eq(folders.path, folderPath)
+        )
+      );
+  }
+
+ const firstFile = result[0];
   if (!firstFile) return [];
 
   await broadcastEvent(firstFile.accountId, {
     type: 'BATCH_FILE_MOVED',
     accountId: firstFile.accountId,
     payload: { files: result },
-    timestamp: Date.now(),
   });
 
   return result;
@@ -439,7 +669,6 @@ export async function batchBookmarkFiles(fileIds: number[], bookmark: boolean) {
     .where(inArray(files.id, fileIds))
     .returning();
 
-  // Определяем accountId из первого файла
   const firstFile = result[0];
   if (!firstFile) return [];
 
@@ -447,7 +676,6 @@ export async function batchBookmarkFiles(fileIds: number[], bookmark: boolean) {
     type: 'BATCH_FILE_BOOKMARKED',
     accountId: firstFile.accountId,
     payload: { files: result },
-    timestamp: Date.now(),
   });
 
   return result;

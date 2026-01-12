@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import {
   useParams,
@@ -28,7 +28,7 @@ export const FileManagerProvider = ({
   const [selectedFolder, setSelectedFolder] =
     useState<Folder | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-    
+
   const [filesData, setFilesData] = useState<File[]>([]);
   const [foldersData, setFoldersData] = useState<Folder[]>([]);
   const [currentFolderData, setCurrentFolderData] = useState<Folder | null>(null);
@@ -66,18 +66,13 @@ export const FileManagerProvider = ({
     accountId,
   });
 
-  // Инициализируем WebSocket
   const { connectionStatus } = useWebSocket(accountId);
 
-  // Обработчик событий файловой системы
   useEffect(() => {
     const handleFileSystemUpdate = (event: Event) => {
       const customEvent = event as CustomEvent;
       const { type, payload } = customEvent.detail;
 
-      setIsLoadingState(true);
-      
-      // Обновляем данные в зависимости от типа события
       switch (type) {
         case 'FILE_ADDED':
           setFilesData(prev => [...prev, payload]);
@@ -89,8 +84,7 @@ export const FileManagerProvider = ({
           setFilesData(prev => {
             const existingIndex = prev.findIndex(file => file.id === payload.id);
             
-            // Получаем текущий путь из URL, если window доступен
-            let currentPath = path; // используем path из props
+            let currentPath = path;
             if (typeof window !== 'undefined') {
               const searchParams = new URLSearchParams(window.location.search);
               currentPath = searchParams.get('path') || '/';
@@ -124,10 +118,10 @@ export const FileManagerProvider = ({
         default:
           refetchFiles();
           refetchFolders();
-          refetchCurrentFolder();
+          if (path !== '/') {
+            refetchCurrentFolder();
+          }
       }
-
-      setTimeout(() => setIsLoadingState(false), 100);
     };
 
     window.addEventListener('filesystem-update', handleFileSystemUpdate);
@@ -140,11 +134,23 @@ export const FileManagerProvider = ({
     return () => {
       window.removeEventListener('filesystem-update', handleFileSystemUpdate);
     };
-  }, [files, folders, currentFolder, filesLoading, foldersLoadingState, refetchFiles, refetchFolders, refetchCurrentFolder]);
+  }, [files, folders, currentFolder, filesLoading, foldersLoadingState, path, refetchFiles, refetchFolders, refetchCurrentFolder]);
 
   useEffect(() => {
     setIsLoadingState(filesLoading || foldersLoadingState);
   }, [filesLoading, foldersLoadingState]);
+
+  useEffect(() => {
+    setFilesData(files || []);
+  }, [files]);
+
+  useEffect(() => {
+    setFoldersData(folders || []);
+  }, [folders]);
+
+  useEffect(() => {
+    setCurrentFolderData(currentFolder || null);
+  }, [currentFolder]);
 
   return (
     <fileManagerContext.Provider

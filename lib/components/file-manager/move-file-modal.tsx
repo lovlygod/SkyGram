@@ -16,7 +16,7 @@ interface MoveFileModalProps {
   isOpen: boolean;
  onClose: () => void;
   onMove: (fileId: number, targetPath: string) => void;
-  accountId: string;
+ accountId: string;
 }
 
 export function MoveFileModal({ file, isOpen, onClose, onMove, accountId }: MoveFileModalProps) {
@@ -46,7 +46,7 @@ export function MoveFileModal({ file, isOpen, onClose, onMove, accountId }: Move
   const navigateToFolder = (path: string) => {
     setCurrentPath(path);
     setSelectedFolder(path);
-  };
+ };
 
   const navigateUp = () => {
     if (currentPath === '/') return;

@@ -63,3 +63,38 @@ export const renameFolder = procedure
   .mutation(async ({ input }) => {
     return services.renameFolder(input);
   });
+
+export const toggleBookmarkFolder = procedure
+  .input(
+    z.object({
+      folderId: z.number(),
+    }),
+  )
+  .mutation(async ({ input }) => {
+    const folder = await services.getSingleFolder({
+      accountId: '',
+      path: '',
+    });
+    
+    const { default: db } = await import('#/lib/db');
+    const { folders } = await import('#/lib/db/schema');
+    const { eq } = await import('drizzle-orm');
+    
+    const result = await db
+      .update(folders)
+      .set({ isBookmarked: !folder?.isBookmarked })
+      .where(eq(folders.id, input.folderId))
+      .returning();
+      
+    const updatedFolder = result[0];
+    
+    if (updatedFolder) {
+      await broadcastEvent(updatedFolder.accountId, {
+        type: 'FILE_UPDATED',
+        accountId: updatedFolder.accountId,
+        payload: updatedFolder,
+      });
+    }
+    
+    return { isBookmarked: updatedFolder?.isBookmarked };
+  });

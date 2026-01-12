@@ -1,20 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { WebSocketErrorHandler } from './error-handler';
-
-type FileSystemEventType =
-  | 'FILE_ADDED'
-  | 'FILE_REMOVED'
-  | 'FILE_UPDATED'
-  | 'FOLDER_CREATED'
-  | 'FOLDER_DELETED'
-  | 'FOLDER_RENAMED';
-
-interface FileSystemEvent {
-  type: FileSystemEventType;
-  accountId: string;
-  payload: any;
-  timestamp: number;
-}
+import { FileSystemEventType, FileSystemEvent } from '../types/websocket-events';
 
 interface WebSocketManager {
   connect: (accountId: string) => void;
@@ -31,7 +17,7 @@ export function useWebSocket(accountId: string): WebSocketManager {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const maxReconnectAttempts = 5;
-  const reconnectInterval = 3000; // 3 секунды
+  const reconnectInterval = 3000;
 
   const connect = (accountId: string) => {
     if (wsRef.current) {
@@ -46,7 +32,7 @@ export function useWebSocket(accountId: string): WebSocketManager {
     
     let wsUrl;
     if (process.env.NODE_ENV === 'production') {
-      wsUrl = `${protocol}//${wsHost}:${wsPort}/ws?accountId=${encodeURIComponent(accountId)}`;
+      wsUrl = `${protocol}//${wsHost}:${wsPort}/api/ws?accountId=${encodeURIComponent(accountId)}`;
     } else {
       wsUrl = `${protocol}//${window.location.host}/api/ws?accountId=${encodeURIComponent(accountId)}`;
     }
@@ -58,7 +44,7 @@ export function useWebSocket(accountId: string): WebSocketManager {
         console.log('WebSocket connected');
         setIsConnected(true);
         setConnectionStatus('connected');
-        reconnectAttemptsRef.current = 0; // Сбрасываем попытки переподключения при успешном подключении
+        reconnectAttemptsRef.current = 0;
       };
 
       wsRef.current.onclose = (event) => {
@@ -95,7 +81,7 @@ export function useWebSocket(accountId: string): WebSocketManager {
           const data: FileSystemEvent = JSON.parse(event.data);
           console.log('Received WebSocket message:', data);
           
-          handleWebSocketMessage(data);
+          window.dispatchEvent(new CustomEvent('filesystem-update', { detail: data }));
         } catch (error) {
           console.error('Error parsing WebSocket message:', error);
         }
@@ -128,10 +114,6 @@ export function useWebSocket(accountId: string): WebSocketManager {
     } else {
       console.warn('WebSocket is not connected, cannot send message');
     }
-  };
-
-  const handleWebSocketMessage = (data: FileSystemEvent) => {
-    window.dispatchEvent(new CustomEvent('filesystem-update', { detail: data }));
   };
 
   useEffect(() => {

@@ -39,10 +39,9 @@ function FolderInfo({
               {t('Total Size')}
             </h1>
             <span className="mt-1 font-semibold">
-              {(
-                (folder.totalSize ?? 0) / 1024
-              ).toFixed(2)}{' '}
-              KB
+              {folder.totalSize !== null && folder.totalSize !== undefined
+                ? `${(folder.totalSize / 1024).toFixed(2)} KB`
+                : '0.00 KB'}
             </span>
           </div>
         </div>

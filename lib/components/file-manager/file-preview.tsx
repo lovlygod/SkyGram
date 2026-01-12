@@ -19,7 +19,7 @@ interface FilePreviewProps {
   onClose: () => void;
   onNext?: () => void;
   onPrev?: () => void;
-  currentFileIndex?: number;
+ currentFileIndex?: number;
   totalFiles?: number;
 }
 
@@ -33,7 +33,7 @@ export function FilePreview({
   totalFiles,
 }: FilePreviewProps) {
   const [scale, setScale] = useState<number>(1);
-  const [rotation, setRotation] = useState<number>(0);
+ const [rotation, setRotation] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
@@ -45,7 +45,7 @@ export function FilePreview({
     setRotation(0);
     setIsLoading(true);
     setError(null);
-    setMediaUrl(null); // Сброс URL при смене файла
+    setMediaUrl(null);
   }, [file]);
 
   useEffect(() => {
@@ -220,7 +220,7 @@ export function FilePreview({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="max-w-[90vw] max-h-[90vh] w-full h-full p-0 flex flex-col border-0"
+        className="max-w-[90vw] max-h-[90vh] w-full h-full p-0 flex-col border-0"
         style={{ maxWidth: 'calc(100vw - 2rem)', maxHeight: 'calc(100vh - 2rem)' }}
       >
         {/* Панель управления */}
@@ -283,7 +283,6 @@ export function FilePreview({
           </div>
         </div>
         
-        {/* Контролы навигации между файлами */}
         {(onNext || onPrev) && (
           <div className="flex justify-between p-2 border-b">
             <Button
@@ -308,7 +307,6 @@ export function FilePreview({
           </div>
         )}
         
-        {/* Контент предварительного просмотра */}
         <div className="flex-1 overflow-auto bg-background flex items-center justify-center">
           {isLoading && (
             <div className="flex items-center justify-center h-full">
@@ -318,7 +316,7 @@ export function FilePreview({
           
           {error && (
             <div className="flex items-center justify-center h-full p-4">
-              <div className="text-center text-red-500">
+              <div className="text-center text-red-50">
                 <p>{error}</p>
                 <Button 
                   variant="outline" 

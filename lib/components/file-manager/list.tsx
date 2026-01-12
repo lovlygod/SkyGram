@@ -2,14 +2,14 @@
 
 import { AnimatePresence } from 'framer-motion';
 
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 
 import { useRouter } from 'next/navigation';
 
 import { useFileManager } from '#/lib/file-manager';
 import { useRealTimeUpdates } from '#/lib/hooks/useRealTimeUpdates';
 import { useTranslation } from '#/lib/hooks/useTranslation';
-import type { File } from '#/lib/db/schema';
+import type { File, Folder } from '#/lib/db/schema';
 
 import ItemLoader from '../common/item-loader';
 import FileInfo from './files/info';
@@ -17,18 +17,26 @@ import FileItem from './files/item';
 import FolderInfo from './folders/info';
 import FolderItem from './folders/item';
 
-function formatDate<T>(
-  data: Record<string, any>,
-): T {
-  return {
-    ...data,
-    createdAt: new Date(data.createdAt),
-    updatedAt: new Date(data.updatedAt),
-  } as T;
-}
+const formatDate = <T extends { createdAt?: string | Date | null; updatedAt?: string | Date | null }>(
+  data: T
+): T => {
+  if (!data) return data;
+  
+  const result = { ...data } as any;
+  
+  if (data.createdAt && typeof data.createdAt === 'string') {
+    result.createdAt = new Date(data.createdAt);
+  }
+  
+  if (data.updatedAt && typeof data.updatedAt === 'string') {
+    result.updatedAt = new Date(data.updatedAt);
+  }
+  
+  return result as T;
+};
 
 function ListItems() {
-  const r = useRouter();
+ const r = useRouter();
   const { t } = useTranslation();
 
   const {
@@ -67,6 +75,10 @@ function ListItems() {
     }
   };
 
+  const processedFolders = useMemo(() => {
+    return folders?.map(folder => formatDate(folder)) || [];
+  }, [folders]);
+
   return (
     <AnimatePresence>
       <div className="flex flex-1 items-start overflow-hidden">
@@ -87,10 +99,10 @@ function ListItems() {
               clearSelectedFiles();
             }}
           >
-            {folders.map((folder) => (
+            {processedFolders.map((folder) => (
               <FolderItem
                 key={folder.id}
-                folder={formatDate(folder)}
+                folder={folder}
                 isSelected={
                   folder.id === selectedFolder?.id
                 }

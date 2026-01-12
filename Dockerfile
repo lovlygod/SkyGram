@@ -20,7 +20,12 @@ ENV TELEGRAM_API_HASH=0
 RUN pnpm drizzle-kit push:sqlite
 RUN pnpm run build
 
-FROM --platform=$BUILDPLATFORM node:18-alpine AS runtime
+FROM --platform=$BUILDPLATFORM node:20-alpine AS runtime
+RUN apk add --no-cache tzdata && \
+    cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime && \
+    echo "Europe/Moscow" > /etc/timezone && \
+    apk del tzdata
+
 COPY --from=build /app/.next .next
 COPY --from=build /app/public public
 COPY --from=build /app/package.json package.json
@@ -29,7 +34,6 @@ COPY --from=build /app/SkyGram.sqlite database.sqlite
 
 ENV NODE_ENV=production
 ENV DATABASE_URL=file:./SkyGram.sqlite
-EXPOSE 3000
+EXPOSE 300
 
 CMD ["npm", "start"]
-

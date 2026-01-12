@@ -13,9 +13,9 @@ import {
  TextIcon,
   TrashIcon,
   VideoIcon,
-  EyeIcon, // Иконка для предварительного просмотра
-  MoveIcon, // Иконка для перемещения
-  CheckIcon, // Иконка для индикатора выбора
+  EyeIcon,
+  MoveIcon,
+  CheckIcon,
 } from 'lucide-react';
 
 import React, { useMemo, useState } from 'react';
@@ -33,7 +33,6 @@ import {
 } from '#/lib/components/ui/context-menu';
 import type { File } from '#/lib/db/schema';
 
-// Импортируем компонент предварительного просмотра
 import { FilePreview } from '../file-preview';
 import { MoveFileModal } from '../move-file-modal';
 import { DeleteConfirmation } from '../delete-confirmation';
@@ -69,7 +68,7 @@ function FileItem({
   const { refetch } = useFileManager();
   const moveFileMutation = trpc.moveFile.useMutation({
     onSuccess: () => {
-      refetch(); // Обновляем список файлов после успешного перемещения
+      refetch();
       toast.success(t('File moved successfully'));
     },
     onError: (error) => {
@@ -120,15 +119,19 @@ function FileItem({
       } else {
         throw new Error('Message not found');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Download error:', error);
-      toast.error(t('Failed to download file'));
+      if (error.message) {
+        toast.error(`${t('Failed to download file')}: ${error.message}`);
+      } else {
+        toast.error(t('Failed to download file'));
+      }
     }
   };
 
    const copyFileMutation = trpc.copyFile.useMutation({
      onSuccess: () => {
-       refetch(); // Обновляем список файлов после успешного копирования
+       refetch();
        toast.success(t('File copied successfully'));
      },
      onError: (error) => {
@@ -149,7 +152,6 @@ function FileItem({
     return icons[type ?? 'default'];
   }, [file]);
 
-  // Обработчик переключения избранного
   const handleToggleBookmark = async () => {
     try {
       await toggleBookmarkFile.mutateAsync(file.id);
@@ -187,7 +189,6 @@ function FileItem({
             }}
             onDoubleClick={() => setIsPreviewOpen(true)}
           >
-            {/* Индикатор выбора */}
             {isSelected && (
               <div className="absolute top-1 right-1 bg-primary rounded-full p-1 flex items-center justify-center z-10 animate-scale-in shadow-lg">
                 <CheckIcon className="text-white dark:text-primary-foreground w-3 h-3" />
@@ -200,7 +201,6 @@ function FileItem({
               {file.filename}
             </h1>
   
-            {/* Иконка избранного всегда отображается, но с разными классами для активного/неактивного состояния */}
             <BookmarkIcon
               className={`${file.isBookmarked ? 'fill-primary text-primary' : 'text-gray-400'} absolute right-2 top-2 cursor-pointer hover:opacity-80 transition-all duration-200`}
               size={15}
@@ -232,7 +232,6 @@ function FileItem({
         </ContextMenuContent>
       </ContextMenu>
       
-      {/* Компонент предварительного просмотра */}
       <FilePreview
         file={{
           filename: file.filename,
@@ -245,7 +244,6 @@ function FileItem({
         onClose={() => setIsPreviewOpen(false)}
       />
       
-      {/* Модальное окно перемещения файла */}
       <MoveFileModal
         file={{
           id: file.id,
@@ -260,7 +258,6 @@ function FileItem({
         accountId={file.accountId}
       />
       
-      {/* Модальное окно подтверждения удаления */}
       <DeleteConfirmation
         file={{
           id: file.id,

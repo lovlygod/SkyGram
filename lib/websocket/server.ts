@@ -1,26 +1,9 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import http from 'http';
+import { FileSystemEventType, FileSystemEvent } from '../types/websocket-events';
 
 interface WebSocketWithAccount extends WebSocket {
   accountId?: string;
-}
-
-type FileSystemEventType =
-  | 'FILE_ADDED'
-  | 'FILE_REMOVED'
-  | 'FILE_UPDATED'
-  | 'FOLDER_CREATED'
-  | 'FOLDER_DELETED'
-  | 'FOLDER_RENAMED'
-  | 'BATCH_FILE_DELETED'
-  | 'BATCH_FILE_MOVED'
-  | 'BATCH_FILE_BOOKMARKED';
-
-interface FileSystemEvent {
-  type: FileSystemEventType;
-  accountId: string;
-  payload: any;
-  timestamp: number;
 }
 
 class WebSocketManager {
@@ -65,24 +48,31 @@ class WebSocketManager {
       ws.on('close', () => {
         console.log(`Client disconnected for account: ${ws.accountId}`);
         if (ws.accountId) {
-          const accountClients = this.clients.get(ws.accountId);
-          if (accountClients) {
-            accountClients.delete(ws);
-            if (accountClients.size === 0) {
-              this.clients.delete(ws.accountId);
-            }
-          }
+          this.removeClient(ws, ws.accountId);
         }
       });
 
       ws.on('error', (error: Error) => {
         console.error('WebSocket error:', error);
+        if (ws.accountId) {
+          this.removeClient(ws, ws.accountId);
+        }
       });
     });
 
     this.wss.on('error', (error: Error) => {
       console.error('WebSocket server error:', error);
     });
+  }
+
+  private removeClient(client: WebSocketWithAccount, accountId: string): void {
+    const accountClients = this.clients.get(accountId);
+    if (accountClients) {
+      accountClients.delete(client);
+      if (accountClients.size === 0) {
+        this.clients.delete(accountId);
+      }
+    }
   }
 
   public broadcastToAccount(accountId: string, event: FileSystemEvent): void {
@@ -95,16 +85,25 @@ class WebSocketManager {
     console.log(`Broadcasting to ${clients.size} clients for account: ${accountId}`);
     
     const message = JSON.stringify(event);
-    clients.forEach((client) => {
+    const clientsArray = Array.from(clients);
+    const clientsToRemove = [];
+    
+    for (const client of clientsArray) {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(message);
-      } else {
-        clients.delete(client);
-        if (clients.size === 0) {
-          this.clients.delete(accountId);
+        try {
+          client.send(message);
+        } catch (error) {
+          console.error('Error sending message to client:', error);
+          clientsToRemove.push(client);
         }
+      } else {
+        clientsToRemove.push(client);
       }
-    });
+    }
+    
+    for (const client of clientsToRemove) {
+      this.removeClient(client, accountId);
+    }
   }
 
   public broadcastToAll(event: FileSystemEvent): void {

@@ -9,10 +9,12 @@ import { toast } from 'sonner';
 import { Api } from 'telegram';
 import { CustomFile } from 'telegram/client/uploads';
 
+import { Buffer } from 'buffer';
+
 import {
   useEffect,
   useRef,
-  useState,
+ useState,
 } from 'react';
 
 import {
@@ -37,30 +39,103 @@ import { useTranslation } from '#/lib/hooks/useTranslation';
 
 import { Progress } from '../../ui/progress';
 
+// Максимальный размер файла (50 МБ)
+const MAX_FILE_SIZE = 50 * 1024 * 1024;
+
+// Разрешенные типы файлов
+const ALLOWED_FILE_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'application/pdf',
+  'text/plain',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/zip',
+  'application/x-rar-compressed',
+  'application/x-7z-compressed',
+  'application/x-tar',
+  'application/gzip',
+  'application/x-bzip2',
+  'video/mp4',
+  'video/quicktime',
+  'video/x-msvideo',
+  'video/x-ms-wmv',
+  'video/x-flv',
+  'audio/mpeg',
+  'audio/wav',
+  'audio/x-ms-wma',
+  'audio/aac',
+  'application/json',
+  'text/csv',
+  'application/octet-stream'
+];
+
 function UploadModal() {
   const params = useParams<{ accountId: string }>();
-  const client = useTelegramClient();
+ const client = useTelegramClient();
   const searchParam = useSearchParams();
-  const { refetch } = useFileManager();
+ const { refetch } = useFileManager();
   const [progress, setProgress] = useState(0);
   const [currentFileIndex, setCurrentFileIndex] =
     useState(0);
-  const { t } = useTranslation();
+ const { t } = useTranslation();
 
   const createFile =
     trpc.createFile.useMutation();
 
   const fileRef = useRef<HTMLInputElement>(null);
-  const [isOpen, setIsOpen] = useState(false);
-  const [isUploading, setIsUploading] =
+ const [isOpen, setIsOpen] = useState(false);
+ const [isUploading, setIsUploading] =
     useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] =
     useState(false);
-  const [cancelledFiles, setCancelledFiles] = useState<Set<string>>(new Set());
+ const [cancelledFiles, setCancelledFiles] = useState<Set<string>>(new Set());
 
   const folderPath =
     searchParam?.get('path') ?? '/';
+
+  const validateFile = (file: File): boolean => {
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(`${file.name} exceeds maximum size of 50MB`);
+      return false;
+    }
+
+    if (!ALLOWED_FILE_TYPES.includes(file.type) && file.type !== '') {
+      toast.error(`File type not allowed: ${file.name}`);
+      return false;
+    }
+
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    if (fileExtension) {
+      const allowedExtensions = [
+        'jpg', 'jpeg', 'png', 'gif', 'webp',
+        'pdf', 'txt', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+        'zip', 'rar', '7z', 'tar', 'gz', 'bz2',
+        'mp4', 'mov', 'avi', 'wmv', 'flv',
+        'mp3', 'wav', 'wma', 'aac',
+        'json', 'csv'
+      ];
+      
+      if (!allowedExtensions.includes(fileExtension)) {
+        toast.error(`File extension not allowed: ${file.name}`);
+        return false;
+      }
+    }
+
+    if (file.name.includes('../') || file.name.includes('..\\')) {
+      toast.error(`Invalid file name: ${file.name}`);
+      return false;
+    }
+
+    return true;
+ };
 
   async function uploadFile(file: File) {
       if (cancelledFiles.has(file.name)) {
@@ -73,7 +148,7 @@ function UploadModal() {
         file.name,
         file.size,
         '',
-        buffer,
+        buffer as any,
       );
   
       try {
@@ -85,7 +160,7 @@ function UploadModal() {
             if (cancelledFiles.has(file.name)) {
               return;
             }
-            setProgress(progress * 100);
+            setProgress(progress * 10);
           },
         });
   
@@ -131,12 +206,25 @@ function UploadModal() {
       return;
     }
 
+    const validFiles: File[] = [];
+    for (const file of files) {
+      if (validateFile(file)) {
+        validFiles.push(file);
+      }
+    }
+
+    if (validFiles.length === 0) {
+      return;
+    }
+
+    setFiles(validFiles);
+
     setIsUploading(true);
 
-    for (let i = 0; i < files.length; i++) {
+    for (let i = 0; i < validFiles.length; i++) {
       setCurrentFileIndex(i);
       setProgress(0);
-      await uploadFile(files[i]);
+      await uploadFile(validFiles[i]);
     }
 
     refetch();
@@ -216,7 +304,7 @@ function UploadModal() {
                       setFiles(
                         files.filter(
                           (_, i) => i !== index,
-                        ),
+                        ) as File[],
                       );
                     }}
                     className="flex-shrink-0"
@@ -245,10 +333,18 @@ function UploadModal() {
                 const droppedFiles = Array.from(
                   ev.dataTransfer?.files || [],
                 );
+                
+                const validDroppedFiles: File[] = [];
+                for (const file of droppedFiles) {
+                  if (validateFile(file)) {
+                    validDroppedFiles.push(file);
+                  }
+                }
+                
                 setFiles((prev) => [
                   ...prev,
-                  ...droppedFiles,
-                ]);
+                  ...validDroppedFiles,
+                ] as File[]);
               }}
               onDragOver={(ev) => {
                 ev.preventDefault();
@@ -264,10 +360,18 @@ function UploadModal() {
                     Array.from(
                       e.target.files || [],
                     );
+                  
+                  const validSelectedFiles: File[] = [];
+                  for (const file of selectedFiles) {
+                    if (validateFile(file)) {
+                      validSelectedFiles.push(file);
+                    }
+                  }
+                  
                   setFiles((prev) => [
                     ...prev,
-                    ...selectedFiles,
-                  ]);
+                    ...validSelectedFiles,
+                  ] as File[]);
                 }}
               />
               {isDragging ? (

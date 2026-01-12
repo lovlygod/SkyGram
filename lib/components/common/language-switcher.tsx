@@ -18,8 +18,8 @@ import {
 export function LanguageSwitcher() {
   const { language, setLanguage } = useTheme();
 
-  const handleLanguageChange = (value: 'en' | 'ru' | 'uk' | 'kk') => {
-    setLanguage(value);
+  const handleLanguageChange = (value: string) => {
+    setLanguage(value as 'en' | 'ru' | 'uk' | 'kk');
  };
 
   return (

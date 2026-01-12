@@ -1,24 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useFileManager } from '../file-manager/context';
 import type { File, Folder } from '../db/schema';
-
-type FileSystemEventType =
-  | 'FILE_ADDED'
-  | 'FILE_REMOVED'
-  | 'FILE_UPDATED'
-  | 'FOLDER_CREATED'
-  | 'FOLDER_DELETED'
-  | 'FOLDER_RENAMED'
-  | 'BATCH_FILE_DELETED'
-  | 'BATCH_FILE_MOVED'
-  | 'BATCH_FILE_BOOKMARKED';
-
-interface FileSystemEvent {
-  type: FileSystemEventType;
-  accountId: string;
-  payload: any;
-  timestamp: number;
-}
+import { FileSystemEventType, FileSystemEvent } from '../types/websocket-events';
 
 export const useRealTimeUpdates = () => {
   const {
@@ -56,7 +39,6 @@ export const useRealTimeUpdates = () => {
               return prev.filter((_, index) => index !== existingIndex);
             }
           } else {
-            // Файл не существует в списке
             if (payload.folderPath === currentPath) {
               return [...prev, payload as File];
             }

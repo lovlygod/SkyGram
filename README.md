@@ -161,7 +161,7 @@ Access your bookmarked files quickly through the dedicated bookmarks section in 
 ## Environment Variables
 
 - `TELEGRAM_API_ID`: Your Telegram API ID from my.telegram.org
-- `TEGRAM_API_HASH`: Your Telegram API hash from my.telegram.org
+- `TELEGRAM_API_HASH`: Your Telegram API hash from my.telegram.org
 - `SERVER_URL`: The URL where your server is accessible
 - `DATABASE_URL`: Path to your SQLite database file (defaults to local file)
 
