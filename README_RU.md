@@ -1,4 +1,12 @@
+<div align="center">
+
+<img src="./public/SkyGram.png" width="200" height="200">
+
 # SkyGram - Персональное облачное хранилище
+
+</div>
+
+
 
 SkyGram - это персональное облачное хранилище, которое использует Telegram в качестве диска. Приложение позволяет загружать, скачивать и организовывать файлы с использованием API Telegram. Проект построен на основе [Next.js](https://nextjs.org) и [Telegram Bot API](https://core.telegram.org/bots/api).
 
